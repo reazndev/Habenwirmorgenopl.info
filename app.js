@@ -100,9 +100,9 @@ async function loadExcelFiles() {
     let timeText;
 
     if (timeDiff === 1) {
-      timeText = "morgen";
+      timeText = "heute";
     } else if (timeDiff === 2) {
-      timeText = "übermorgen";
+      timeText = "morgen";
     } else {
       timeText = `in ${timeDiff} Tagen`;
     }
