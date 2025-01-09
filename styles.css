@@ -1,13 +1,12 @@
 @font-face {
     font-family: "nMedium";
-    src: url("/assets/PPNikkeiRegular.otf") format("opentype");
+    src: url("./assets/PPNikkeiRegular.otf") format("opentype");
 }
 
 @font-face {
     font-family: "nLight";
-    src: url("/assets/PPNikkeiLight.otf") format("opentype");
+    src: url("./assets/PPNikkeiLight.otf") format("opentype");
 }
-
 
 body {
     font-family: 'nLight', sans-serif;

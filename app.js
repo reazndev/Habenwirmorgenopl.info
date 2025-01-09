@@ -71,9 +71,9 @@ async function loadExcelFiles() {
 
     
     const filePaths = [
-        "/sheets/colic.xlsx",
-        "/sheets/meyer.xlsx",
-        "/sheets/rapisadra.xlsx"
+        "./sheets/colic.xlsx",
+        "./sheets/meyer.xlsx",
+        "./sheets/rapisadra.xlsx"
     ];
 
     
