@@ -107,7 +107,7 @@ async function loadExcelFiles() {
       timeText = `in ${timeDiff} Tagen`;
     }
 
-    nextSessionElement.textContent = `${timeText}, bei ${nextSession.details} als ${nextSession.sessionType}`;
+    nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
   } else {
     nextSessionElement.textContent = "No upcoming sessions found.";
   }
