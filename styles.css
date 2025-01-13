@@ -81,7 +81,6 @@ body {
     border-radius: 10px;
 }
 
-
 #next-session.red-glow::before {
     content: "";
     position: absolute;
@@ -94,7 +93,6 @@ body {
     animation: expandBackground 1s ease-in-out 0.5s forwards;
     border-radius: 10px;
 }
-
 
 
 table {
