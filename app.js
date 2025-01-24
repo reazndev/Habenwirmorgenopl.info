@@ -26,14 +26,14 @@ async function processFile(filePath, sessions) {
 
     
     jsonData.forEach((row) => {
-      const columnBValue = row[1]; 
-      const columnEValue = row[4]; 
-      const columnFValue = row[5]; 
-      const columnGValue = row[6]; 
-      const columnMValue = row[12]; 
-      const columnOValue = row[14]; 
-      const columnPValue = row[15]; 
-      const columnQValue = row[16]; 
+      const columnBValue = row[1]; // date
+      const columnEValue = row[4]; // details
+      const columnFValue = row[5]; // session type
+      const columnGValue = row[6]; // note
+      const columnMValue = row[12]; // date
+      const columnOValue = row[14]; // details
+      const columnPValue = row[15]; // session type
+      const columnQValue = row[16]; // note
 
       
       if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
@@ -113,8 +113,12 @@ async function loadExcelFiles() {
       timeText = `in ${timeDiff} Tagen`;
     }
 
-    
+
+    if (columnEValue === 'ILA') {
+      nextSessionElement.textContent = `${timeText} im Lernatelier als ${nextSession.sessionType}`;
+    } else {      
     nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
+    }
 
     
     if (nextSession.sessionType === "PPL") {
