@@ -106,15 +106,15 @@ async function loadExcelFiles() {
     let timeText;
 
     if (timeDiff === 1) {
-      timeText = "heute";
+      timeText = "Heute";
     } else if (timeDiff === 2) {
-      timeText = "morgen";
+      timeText = "Morgen";
     } else {
-      timeText = `in ${timeDiff} Tagen`;
+      timeText = `In ${timeDiff} Tagen`;
     }
 
 
-    if (columnEValue === 'ILA') {
+    if (columnOValue === 'ILA') {
       nextSessionElement.textContent = `${timeText} im Lernatelier als ${nextSession.sessionType}`;
     } else {      
     nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
