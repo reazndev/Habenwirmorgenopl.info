@@ -1,30 +1,26 @@
-
 function excelSerialToDate(serial) {
-  const utcDays = Math.floor(serial - 25569); 
-  const utcValue = utcDays * 86400; 
-  const date = new Date(utcValue * 1000); 
+  const utcDays = Math.floor(serial - 25569);
+  const utcValue = utcDays * 86400;
+  const date = new Date(utcValue * 1000);
   return date;
 }
 
-
 function isDateTodayOrLater(date) {
   const today = new Date();
-  today.setHours(0, 0, 0, 0); 
+  today.setHours(0, 0, 0, 0);
   return date >= today;
 }
 
-
 async function processFile(filePath, sessions) {
   try {
-    const response = await fetch(filePath); 
-    const arrayBuffer = await response.arrayBuffer(); 
-    const data = new Uint8Array(arrayBuffer); 
-    const workbook = XLSX.read(data, { type: "array" }); 
-    const sheetName = workbook.SheetNames[0]; 
-    const sheet = workbook.Sheets[sheetName]; 
-    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }); 
+    const response = await fetch(filePath);
+    const arrayBuffer = await response.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-    
     jsonData.forEach((row) => {
       const columnBValue = row[1]; // date
       const columnEValue = row[4]; // details
@@ -35,8 +31,11 @@ async function processFile(filePath, sessions) {
       const columnPValue = row[15]; // session type
       const columnQValue = row[16]; // note
 
-      
-      if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
+      if (
+        typeof columnBValue === "number" &&
+        columnBValue > 0 &&
+        columnFValue
+      ) {
         const date = excelSerialToDate(columnBValue);
         if (isDateTodayOrLater(date)) {
           sessions.push({
@@ -48,8 +47,11 @@ async function processFile(filePath, sessions) {
         }
       }
 
-      
-      if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
+      if (
+        typeof columnMValue === "number" &&
+        columnMValue > 0 &&
+        columnPValue
+      ) {
         const date = excelSerialToDate(columnMValue);
         if (isDateTodayOrLater(date)) {
           sessions.push({
@@ -66,40 +68,32 @@ async function processFile(filePath, sessions) {
   }
 }
 
-
 async function loadExcelFiles() {
   const sessions = [];
 
-  
   const filePaths = [
     "./sheets/colic.xlsx",
     "./sheets/meyer.xlsx",
     "./sheets/rapisadra.xlsx",
   ];
 
-  
   for (const filePath of filePaths) {
     await processFile(filePath, sessions);
   }
 
-  
   sessions.sort((a, b) => a.date - b.date);
 
-  
   const limitedSessions = sessions.slice(0, 14);
 
-  
   const tableBody = document.querySelector("#timetable tbody");
   const nextSessionElement = document.getElementById("next-session");
-  tableBody.innerHTML = ""; 
+  tableBody.innerHTML = "";
 
-  
   if (limitedSessions.length > 0) {
     const nextSession = limitedSessions[0];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    
     const timeDiff = Math.ceil(
       (nextSession.date - today) / (1000 * 60 * 60 * 24)
     );
@@ -113,14 +107,12 @@ async function loadExcelFiles() {
       timeText = `In ${timeDiff} Tagen`;
     }
 
-
-    if (columnOValue === 'ILA') {
+    if (nextSession.details === "ILA") {
       nextSessionElement.textContent = `${timeText} im Lernatelier als ${nextSession.sessionType}`;
-    } else {      
-    nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
+    } else {
+      nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
     }
 
-    
     if (nextSession.sessionType === "PPL") {
       nextSessionElement.classList.add("red-glow");
     } else {
@@ -130,7 +122,6 @@ async function loadExcelFiles() {
     nextSessionElement.textContent = "No upcoming sessions found.";
   }
 
-  
   limitedSessions.forEach((session) => {
     const newRow = document.createElement("tr");
     const cellDate = document.createElement("td");
@@ -141,7 +132,6 @@ async function loadExcelFiles() {
     cellSessionType.textContent = session.sessionType;
     cellDetails.textContent = session.details;
 
-    
     if (session.note) {
       const star = document.createElement("span");
       star.className = "star";
@@ -149,28 +139,23 @@ async function loadExcelFiles() {
       star.setAttribute("data-tooltip", session.note);
       cellDetails.appendChild(star);
 
-      
       if (session.note.includes("Prüfung") || session.note.includes("Abgabe")) {
         newRow.classList.add("highlight-row");
       }
     }
 
-    
     newRow.appendChild(cellDate);
     newRow.appendChild(cellSessionType);
     newRow.appendChild(cellDetails);
 
-    
     if (session.sessionType === "OPL" || session.sessionType === "DSL") {
       newRow.classList.add("green-row");
     } else if (session.sessionType === "PPL") {
       newRow.classList.add("red-row");
     }
 
-    
     tableBody.appendChild(newRow);
   });
 }
-
 
 window.onload = loadExcelFiles;
