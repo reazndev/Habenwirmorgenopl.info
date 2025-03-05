@@ -201,3 +201,71 @@ tr:last-child td:last-child {
     color: #000;
     transform: scale(1.1);
 }
+
+#timetable-container {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr); /* 15 columns */
+    grid-template-rows: repeat(9, 1fr); /* 10 rows */
+    gap: 10px; /* Space between grid items */
+    padding-top: 50px;
+}
+
+.timetable-slot {
+    width: 100%; /* Full width of the grid cell */
+    height: 100%; /* Full height of the grid cell */
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white; /* Text color */
+    font-weight: bold;
+}
+
+/* Add specific styles for gray slots */
+.timetable-slot[style*="background-color: gray;"] {
+    color: black; /* Change text color for gray slots */
+}
+
+
+.mon-slot {
+    border-radius: 10px;
+
+}
+
+.wed-slot {
+    border-radius: 10px;
+
+}
+
+.thr-slot {
+    border-radius: 10px;
+}
+
+.fri-slot {
+    border-radius: 10px;
+}
+
+/* Add these styles to your existing CSS */
+@media screen and (max-width: 768px) {
+  #timetable-container {
+    width: 90% !important; 
+    margin: 0 auto;
+    height: auto !important;
+    min-height: 400px;
+  }
+  
+  .mon-slot, .wed-slot, .thr-slot, .fri-slot, .timetable-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    height: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+}
+
+.header {
+    padding: 20px;
+    transition: background-color 0.3s ease;
+}

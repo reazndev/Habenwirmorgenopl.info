@@ -11,6 +11,24 @@ function isDateTodayOrLater(date) {
   return date >= today;
 }
 
+function getStartOfWeek(date) {
+  const startOfWeek = new Date(date);
+  const day = startOfWeek.getDay(); // Get current day of the week (0-6)
+  const diff = startOfWeek.getDate() - day; // Adjust the date to the start of the week
+  startOfWeek.setDate(diff);
+  startOfWeek.setHours(0, 0, 0, 0); // Set time to the start of the day
+  return startOfWeek;
+}
+
+function getEndOfWeek(date) {
+  const endOfWeek = new Date(date);
+  const day = endOfWeek.getDay(); // Get current day of the week (0-6)
+  const diff = endOfWeek.getDate() + (6 - day); // Adjust the date to the end of the week
+  endOfWeek.setDate(diff);
+  endOfWeek.setHours(23, 59, 59, 999); // Set time to the end of the day
+  return endOfWeek;
+}
+
 async function processFile(filePath, sessions) {
   try {
     const response = await fetch(filePath);
@@ -31,13 +49,10 @@ async function processFile(filePath, sessions) {
       const columnPValue = row[15]; // session type
       const columnQValue = row[16]; // note
 
-      if (
-        typeof columnBValue === "number" &&
-        columnBValue > 0 &&
-        columnFValue
-      ) {
+      // Allow sessions to be added if they are within the current week
+      if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
         const date = excelSerialToDate(columnBValue);
-        if (isDateTodayOrLater(date)) {
+        if (date >= getStartOfWeek(new Date()) && date <= getEndOfWeek(new Date())) {
           sessions.push({
             date: date,
             sessionType: columnFValue,
@@ -47,13 +62,9 @@ async function processFile(filePath, sessions) {
         }
       }
 
-      if (
-        typeof columnMValue === "number" &&
-        columnMValue > 0 &&
-        columnPValue
-      ) {
+      if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
         const date = excelSerialToDate(columnMValue);
-        if (isDateTodayOrLater(date)) {
+        if (date >= getStartOfWeek(new Date()) && date <= getEndOfWeek(new Date())) {
           sessions.push({
             date: date,
             sessionType: columnPValue,
@@ -65,6 +76,65 @@ async function processFile(filePath, sessions) {
     });
   } catch (error) {
     console.error(`Error processing file ${filePath}:`, error);
+  }
+}
+
+function updateTimetableVisualization(sessions) {
+  // Group sessions by day of week
+  const sessionsByDay = {
+    0: [], // Sunday
+    1: [], // Monday
+    2: [], // Tuesday
+    3: [], // Wednesday
+    4: [], // Thursday
+    5: [], // Friday
+    6: []  // Saturday
+  };
+  
+  sessions.forEach(session => {
+    const day = session.date.getDay();
+    sessionsByDay[day].push(session);
+  });
+  
+  // Create a reusable function for formatting the slots
+  const updateSlot = (slot, session) => {
+    if (session.sessionType === 'OPL' || session.sessionType === 'DSL') {
+      slot.style.backgroundColor = 'rgb(132, 204, 132)';
+    } else if (session.sessionType === 'PPL') {
+      slot.style.backgroundColor = 'white';
+    }
+    
+    const date = session.date.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit'});
+    const textColor = session.sessionType === 'PPL' ? 'black' : 'white';
+    
+    // Mobile-friendly formatting
+    slot.innerHTML = `
+      <div style="padding: 5px; color: ${textColor}; text-align: center; overflow: hidden;">
+        <div style="font-weight: bold; font-size: clamp(0.7rem, 2vw, 1.2rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${session.details}</div>
+        <div style="font-size: clamp(0.6rem, 1.5vw, 1rem);">${date}</div>
+        <div style="font-size: clamp(0.6rem, 1.5vw, 1rem);">${session.sessionType}</div>
+      </div>
+    `;
+  };
+  
+  // Update Monday slot
+  if (sessionsByDay[1].length > 0) {
+    updateSlot(document.querySelector('.mon-slot'), sessionsByDay[1][0]);
+  }
+  
+  // Update Wednesday slot
+  if (sessionsByDay[3].length > 0) {
+    updateSlot(document.querySelector('.wed-slot'), sessionsByDay[3][0]);
+  }
+  
+  // Update Thursday slot
+  if (sessionsByDay[4].length > 0) {
+    updateSlot(document.querySelector('.thr-slot'), sessionsByDay[4][0]);
+  }
+  
+  // Update Friday slot
+  if (sessionsByDay[5].length > 0) {
+    updateSlot(document.querySelector('.fri-slot'), sessionsByDay[5][0]);
   }
 }
 
@@ -83,14 +153,23 @@ async function loadExcelFiles() {
 
   sessions.sort((a, b) => a.date - b.date);
 
-  const limitedSessions = sessions.slice(0, 14);
+  const today = new Date();
+  const startOfWeek = getStartOfWeek(today);
+  const endOfWeek = getEndOfWeek(today);
+
+  const sessionsThisWeek = sessions.filter(session => 
+    session.date >= startOfWeek && session.date <= endOfWeek
+  );
+  console.log("Sessions this week:", sessionsThisWeek);
+
+  updateTimetableVisualization(sessionsThisWeek);
 
   const tableBody = document.querySelector("#timetable tbody");
   const nextSessionElement = document.getElementById("next-session");
   tableBody.innerHTML = "";
 
-  if (limitedSessions.length > 0) {
-    const nextSession = limitedSessions[0];
+  if (sessionsThisWeek.length > 0) {
+    const nextSession = sessionsThisWeek[0];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -99,9 +178,9 @@ async function loadExcelFiles() {
     );
     let timeText;
 
-    if (timeDiff === 1) {
+    if (timeDiff === 0) {
       timeText = "Heute";
-    } else if (timeDiff === 2) {
+    } else if (timeDiff === 1) {
       timeText = "Morgen";
     } else {
       timeText = `In ${timeDiff} Tagen`;
@@ -122,7 +201,7 @@ async function loadExcelFiles() {
     nextSessionElement.textContent = "No upcoming sessions found.";
   }
 
-  limitedSessions.forEach((session) => {
+  sessionsThisWeek.forEach((session) => {
     const newRow = document.createElement("tr");
     const cellDate = document.createElement("td");
     const cellSessionType = document.createElement("td");
@@ -158,4 +237,7 @@ async function loadExcelFiles() {
   });
 }
 
-window.onload = loadExcelFiles;
+window.onload = function() {
+  loadExcelFiles();      // For the timetable visualization
+  loadExcelFilesTable(); // For the table display
+};
