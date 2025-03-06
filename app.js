@@ -29,6 +29,9 @@ function getEndOfWeek(date) {
   return endOfWeek;
 }
 
+// Add a variable to track the current week offset (0 = current week, 1 = next week, etc.)
+let currentWeekOffset = 0;
+
 async function processFile(filePath, sessions) {
   try {
     const response = await fetch(filePath);
@@ -49,10 +52,10 @@ async function processFile(filePath, sessions) {
       const columnPValue = row[15]; // session type
       const columnQValue = row[16]; // note
 
-      // Allow sessions to be added if they are within the current week
+      // Process all sessions, not just those in the current week
       if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
         const date = excelSerialToDate(columnBValue);
-        if (date >= getStartOfWeek(new Date()) && date <= getEndOfWeek(new Date())) {
+        if (isDateTodayOrLater(date)) {
           sessions.push({
             date: date,
             sessionType: columnFValue,
@@ -64,7 +67,7 @@ async function processFile(filePath, sessions) {
 
       if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
         const date = excelSerialToDate(columnMValue);
-        if (date >= getStartOfWeek(new Date()) && date <= getEndOfWeek(new Date())) {
+        if (isDateTodayOrLater(date)) {
           sessions.push({
             date: date,
             sessionType: columnPValue,
@@ -107,12 +110,12 @@ function updateTimetableVisualization(sessions) {
     const date = session.date.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit'});
     const textColor = session.sessionType === 'PPL' ? 'black' : 'white';
     
-    // Mobile-friendly formatting
+    // Enhanced mobile-friendly formatting
     slot.innerHTML = `
-      <div style="padding: 5px; color: ${textColor}; text-align: center; overflow: hidden;">
-        <div style="font-weight: bold; font-size: clamp(0.7rem, 2vw, 1.2rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${session.details}</div>
-        <div style="font-size: clamp(0.6rem, 1.5vw, 1rem);">${date}</div>
-        <div style="font-size: clamp(0.6rem, 1.5vw, 1rem);">${session.sessionType}</div>
+      <div style="padding: 5px; color: ${textColor}; text-align: center; overflow: hidden; width: 100%;">
+        <div style="font-weight: bold; font-size: clamp(0.7rem, 1.5vw, 1.2rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${session.details}</div>
+        <div style="font-size: clamp(0.6rem, 1.2vw, 1rem);">${date}</div>
+        <div style="font-size: clamp(0.6rem, 1.2vw, 1rem);">${session.sessionType}</div>
       </div>
     `;
   };
@@ -120,25 +123,38 @@ function updateTimetableVisualization(sessions) {
   // Update Monday slot
   if (sessionsByDay[1].length > 0) {
     updateSlot(document.querySelector('.mon-slot'), sessionsByDay[1][0]);
+  } else {
+    document.querySelector('.mon-slot').innerHTML = '';
+    document.querySelector('.mon-slot').style.backgroundColor = '#cfcfcf';
   }
   
   // Update Wednesday slot
   if (sessionsByDay[3].length > 0) {
     updateSlot(document.querySelector('.wed-slot'), sessionsByDay[3][0]);
+  } else {
+    document.querySelector('.wed-slot').innerHTML = '';
+    document.querySelector('.wed-slot').style.backgroundColor = '#cfcfcf';
   }
   
   // Update Thursday slot
   if (sessionsByDay[4].length > 0) {
     updateSlot(document.querySelector('.thr-slot'), sessionsByDay[4][0]);
+  } else {
+    document.querySelector('.thr-slot').innerHTML = '';
+    document.querySelector('.thr-slot').style.backgroundColor = '#cfcfcf';
   }
   
   // Update Friday slot
   if (sessionsByDay[5].length > 0) {
     updateSlot(document.querySelector('.fri-slot'), sessionsByDay[5][0]);
+  } else {
+    document.querySelector('.fri-slot').innerHTML = '';
+    document.querySelector('.fri-slot').style.backgroundColor = '#cfcfcf';
   }
 }
 
-async function loadExcelFiles() {
+// Function to load all sessions for the current week offset, including past sessions
+async function loadAllWeekSessions() {
   const sessions = [];
 
   const filePaths = [
@@ -147,97 +163,94 @@ async function loadExcelFiles() {
     "./sheets/rapisadra.xlsx",
   ];
 
+  // Process all files without date filtering
   for (const filePath of filePaths) {
-    await processFile(filePath, sessions);
+    try {
+      const response = await fetch(filePath);
+      const arrayBuffer = await response.arrayBuffer();
+      const data = new Uint8Array(arrayBuffer);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      jsonData.forEach((row) => {
+        const columnBValue = row[1]; // date
+        const columnEValue = row[4]; // details
+        const columnFValue = row[5]; // session type
+        const columnGValue = row[6]; // note
+        const columnMValue = row[12]; // date
+        const columnOValue = row[14]; // details
+        const columnPValue = row[15]; // session type
+        const columnQValue = row[16]; // note
+
+        // Process all sessions without date filtering
+        if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
+          const date = excelSerialToDate(columnBValue);
+          sessions.push({
+            date: date,
+            sessionType: columnFValue,
+            details: columnEValue || "",
+            note: columnGValue || "",
+          });
+        }
+
+        if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
+          const date = excelSerialToDate(columnMValue);
+          sessions.push({
+            date: date,
+            sessionType: columnPValue,
+            details: columnOValue || "",
+            note: columnQValue || "",
+          });
+        }
+      });
+    } catch (error) {
+      console.error(`Error processing file ${filePath}:`, error);
+    }
   }
 
   sessions.sort((a, b) => a.date - b.date);
 
+  // Calculate the start and end of the selected week based on the currentWeekOffset
   const today = new Date();
-  const startOfWeek = getStartOfWeek(today);
-  const endOfWeek = getEndOfWeek(today);
+  const selectedDate = new Date(today.getTime() + currentWeekOffset * 7 * 24 * 60 * 60 * 1000);
+  const startOfWeek = getStartOfWeek(selectedDate);
+  const endOfWeek = getEndOfWeek(selectedDate);
 
   const sessionsThisWeek = sessions.filter(session => 
     session.date >= startOfWeek && session.date <= endOfWeek
   );
-  console.log("Sessions this week:", sessionsThisWeek);
+  console.log(`Sessions for week offset ${currentWeekOffset}:`, sessionsThisWeek);
 
-  updateTimetableVisualization(sessionsThisWeek);
-
-  const tableBody = document.querySelector("#timetable tbody");
-  const nextSessionElement = document.getElementById("next-session");
-  tableBody.innerHTML = "";
-
-  if (sessionsThisWeek.length > 0) {
-    const nextSession = sessionsThisWeek[0];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const timeDiff = Math.ceil(
-      (nextSession.date - today) / (1000 * 60 * 60 * 24)
-    );
-    let timeText;
-
-    if (timeDiff === 0) {
-      timeText = "Heute";
-    } else if (timeDiff === 1) {
-      timeText = "Morgen";
-    } else {
-      timeText = `In ${timeDiff} Tagen`;
-    }
-
-    if (nextSession.details === "ILA") {
-      nextSessionElement.textContent = `${timeText} im Lernatelier als ${nextSession.sessionType}`;
-    } else {
-      nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
-    }
-
-    if (nextSession.sessionType === "PPL") {
-      nextSessionElement.classList.add("red-glow");
-    } else {
-      nextSessionElement.classList.add("green-glow");
-    }
-  } else {
-    nextSessionElement.textContent = "No upcoming sessions found.";
+  // Update the week display
+  const weekDisplay = document.getElementById('week-display');
+  if (weekDisplay) {
+    weekDisplay.textContent = `${startOfWeek.toLocaleDateString('de-DE')} - ${endOfWeek.toLocaleDateString('de-DE')}`;
   }
 
-  sessionsThisWeek.forEach((session) => {
-    const newRow = document.createElement("tr");
-    const cellDate = document.createElement("td");
-    const cellSessionType = document.createElement("td");
-    const cellDetails = document.createElement("td");
+  updateTimetableVisualization(sessionsThisWeek);
+}
 
-    cellDate.textContent = session.date.toLocaleDateString();
-    cellSessionType.textContent = session.sessionType;
-    cellDetails.textContent = session.details;
+// Function to navigate to the previous week
+function previousWeek() {
+  currentWeekOffset--;
+  loadAllWeekSessions();
+}
 
-    if (session.note) {
-      const star = document.createElement("span");
-      star.className = "star";
-      star.textContent = " *";
-      star.setAttribute("data-tooltip", session.note);
-      cellDetails.appendChild(star);
+// Function to navigate to the next week
+function nextWeek() {
+  currentWeekOffset++;
+  loadAllWeekSessions();
+}
 
-      if (session.note.includes("Prüfung") || session.note.includes("Abgabe")) {
-        newRow.classList.add("highlight-row");
-      }
-    }
-
-    newRow.appendChild(cellDate);
-    newRow.appendChild(cellSessionType);
-    newRow.appendChild(cellDetails);
-
-    if (session.sessionType === "OPL" || session.sessionType === "DSL") {
-      newRow.classList.add("green-row");
-    } else if (session.sessionType === "PPL") {
-      newRow.classList.add("red-row");
-    }
-
-    tableBody.appendChild(newRow);
-  });
+// Function to reset to the current week
+function currentWeek() {
+  currentWeekOffset = 0;
+  loadAllWeekSessions();
 }
 
 window.onload = function() {
-  loadExcelFiles();      // For the timetable visualization
-  loadExcelFilesTable(); // For the table display
+  loadAllWeekSessions();  // For the timetable visualization with all week sessions
+  loadExcelFilesTable();  // For the table display
 };

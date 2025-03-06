@@ -249,10 +249,12 @@ tr:last-child td:last-child {
 /* Add these styles to your existing CSS */
 @media screen and (max-width: 768px) {
   #timetable-container {
-    width: 90% !important; 
+    width: 95% !important; 
     margin: 0 auto;
     height: auto !important;
     min-height: 400px;
+    gap: 5px; /* Smaller gap between grid items on mobile */
+    padding: 10px; /* Smaller padding on mobile */
   }
   
   .mon-slot, .wed-slot, .thr-slot, .fri-slot, .timetable-slot {
@@ -263,7 +265,60 @@ tr:last-child td:last-child {
     height: 100%;
     max-width: 100%;
     overflow: hidden;
+  }
+  
+  /* Adjust day labels for mobile */
+  .day-label {
+    font-size: 0.9em;
+    padding: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* Show abbreviated day names on mobile */
+  .day-label span {
+    display: none;
+  }
+  
+  .day-label[data-short-name]::before {
+    content: attr(data-short-name);
+    display: inline;
+    font-size: 1em;
+    font-weight: bold;
+  }
+  
+  /* Adjust slot content for mobile */
+  .mon-slot div, .wed-slot div, .thr-slot div, .fri-slot div, .timetable-slot div {
+    padding: 3px !important;
+  }
+  
+  /* Adjust font sizes for slot content on mobile */
+  .mon-slot div div, .wed-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
+    font-size: 0.8em !important;
+    line-height: 1.2 !important;
+  }
+}
 
+/* Extra small devices (phones, 480px and down) */
+@media screen and (max-width: 480px) {
+  .day-label {
+    font-size: 0.8em;
+    padding: 3px;
+  }
+  
+  .day-label[data-short-name]::before {
+    font-size: 1.1em; /* Make the abbreviated day names slightly larger for better visibility */
+  }
+  
+  #timetable-container {
+    gap: 3px;
+    padding: 5px;
+  }
+  
+  /* Even smaller font sizes for very small screens */
+  .mon-slot div div, .wed-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
+    font-size: 0.7em !important;
   }
 }
 
@@ -284,4 +339,26 @@ tr:last-child td:last-child {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     color: #333;
     border: 1px solid #e0e0e0;
+}
+
+/* Week navigation styles */
+#week-navigation button {
+  background-color: #cfcfcf;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-family: 'nMedium', sans-serif;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#week-navigation button:hover {
+  background-color: #b0b0b0;
+}
+
+#week-display {
+  font-family: 'nMedium', sans-serif;
+  font-size: 1.2em;
+  margin-top: 10px;
 }
