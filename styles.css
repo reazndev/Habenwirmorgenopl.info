@@ -205,7 +205,7 @@ tr:last-child td:last-child {
 #timetable-container {
     display: grid;
     grid-template-columns: repeat(10, 1fr); /* 15 columns */
-    grid-template-rows: repeat(9, 1fr); /* 10 rows */
+    grid-template-rows: auto repeat(9, 1fr); /* 10 rows */
     gap: 10px; /* Space between grid items */
     padding-top: 50px;
 }
@@ -262,10 +262,27 @@ tr:last-child td:last-child {
     height: 100%;
     max-width: 100%;
     overflow: hidden;
+
   }
 }
 
 .header {
     padding: 20px;
     transition: background-color 0.3s ease;
+}
+
+.day-label {
+    font-family: 'nMedium', sans-serif;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    margin-bottom: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
