@@ -208,6 +208,7 @@ tr:last-child td:last-child {
     grid-template-rows: auto repeat(9, 1fr); /* 10 rows */
     gap: 10px; /* Space between grid items */
     padding-top: 50px;
+    padding: 20px;
 }
 
 .timetable-slot {
@@ -277,12 +278,10 @@ tr:last-child td:last-child {
     font-weight: bold;
     text-align: center;
     padding: 10px;
-    background-color: #f0f0f0;
+    background-color: rgb(247, 244, 244);
     border-radius: 10px;
     margin-bottom: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ddd;
     color: #333;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    border: 1px solid #e0e0e0;
 }
