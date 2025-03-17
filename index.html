@@ -6,6 +6,7 @@
     <title>I2A BBB Planner</title>
     <link rel="icon" type="image/x-icon" href="./assets/favicon.ico">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   </head>
   <body>
     <div id="next-session"></div>
@@ -46,19 +47,34 @@
       <div class="thr-slot" style="background-color: #cfcfcf; grid-column: 7 / 9; grid-row: 6 / 10;"></div>
       <div class="fri-slot" style="background-color: #cfcfcf; grid-column: 9 / 11; grid-row: 6 / 10;"></div>
     </div>
+    
+    <!-- Replace the stats button and popup sections with this -->
+    <div id="controls-container" style="position: fixed; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000;">
+      <button id="dark-mode-toggle" style="width: 40px; height: 40px; border-radius: 10px; background-color: rgb(247, 244, 244); border: 1px solid #e0e0e0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <i class="fas fa-moon"></i>
+      </button>
+      
+      <button id="stats-button" style="width: 40px; height: 40px; border-radius: 10px; background-color: rgb(247, 244, 244); border: 1px solid #e0e0e0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+        <i class="fas fa-chart-bar"></i>
+      </button>
+    </div>
+    
+    <!-- Stats popup with inline styles for better compatibility -->
+    <div id="stats-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 1500;"></div>
+    <div id="stats-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 600px; background-color: rgb(247, 244, 244); border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 2000; padding: 20px; text-align: left; max-height: 80vh; overflow-y: auto;">
+      <div id="stats-close" style="position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer;">&times;</div>
+      <h2 style="font-family: 'nMedium', sans-serif; margin-top: 0; text-align: center; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;">Session Statistics</h2>
+      <div id="stats-content">
+        <!-- Stats content will be populated by JavaScript -->
+      </div>
+    </div>
+    
     <a href="https://github.com/FlorianRuby" target="_blank" class="github-icon">
-        <i class="fab fa-github"></i>
+      <i class="fab fa-github"></i>
     </a>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="table.js"></script>
     <script src="app.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // If loadExcelFiles is already called by window.onload in app.js
-        // Just call this new function separately
-        // loadExcelFilesTable(); -- This is now redundant as it's called in app.js
-      });
-    </script>
   </body>
 </html>

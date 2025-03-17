@@ -250,7 +250,178 @@ function currentWeek() {
   loadAllWeekSessions();
 }
 
-// Dark Mode functionality
+// Simplified stats button functionality
+function initStatsButton() {
+  const statsBtn = document.getElementById('stats-button');
+  const overlay = document.getElementById('stats-overlay');
+  const popup = document.getElementById('stats-popup');
+  const closeBtn = document.getElementById('stats-close');
+  const content = document.getElementById('stats-content');
+  
+  if (!statsBtn || !overlay || !popup || !closeBtn || !content) {
+    console.error('Stats elements not found in the DOM');
+    return;
+  }
+  
+  // Close popup function
+  function closePopup() {
+    popup.style.display = 'none';
+    overlay.style.display = 'none';
+  }
+  
+  // Add event listeners
+  closeBtn.addEventListener('click', closePopup);
+  overlay.addEventListener('click', closePopup);
+  
+  statsBtn.addEventListener('click', async function() {
+    // Show loading state
+    content.innerHTML = '<p>Loading statistics...</p>';
+    popup.style.display = 'block';
+    overlay.style.display = 'block';
+    
+    try {
+      const sessions = await getAllSessions();
+      
+      if (!sessions || sessions.length === 0) {
+        content.innerHTML = '<p>No session data available.</p>';
+        return;
+      }
+      
+      // Calculate stats
+      const stats = {
+        total: sessions.length,
+        byType: {
+          OPL: sessions.filter(s => s.sessionType === 'OPL').length,
+          DSL: sessions.filter(s => s.sessionType === 'DSL').length,
+          PPL: sessions.filter(s => s.sessionType === 'PPL').length
+        },
+        byTeacher: {}
+      };
+      
+      // Count by teacher
+      sessions.forEach(session => {
+        const teacher = session.details.includes('colic') ? 'Colic' : 
+                       session.details.includes('meyer') ? 'Meyer' : 
+                       session.details.includes('rapisadra') ? 'Rapisarda' : 'Unknown';
+        
+        if (!stats.byTeacher[teacher]) {
+          stats.byTeacher[teacher] = {
+            total: 0,
+            OPL: 0,
+            DSL: 0,
+            PPL: 0
+          };
+        }
+        
+        stats.byTeacher[teacher].total++;
+        stats.byTeacher[teacher][session.sessionType]++;
+      });
+      
+      // Calculate percentages
+      const oplDslPercent = ((stats.byType.OPL + stats.byType.DSL) / stats.total * 100).toFixed(1);
+      const pplPercent = (stats.byType.PPL / stats.total * 100).toFixed(1);
+      
+      // Build HTML with inline styles
+      let html = `
+        <div style="margin-bottom: 20px;">
+          <h3 style="margin-bottom: 10px;">Overall</h3>
+          <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;">
+            <div>Total Sessions:</div>
+            <div>${stats.total}</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; border-radius: 5px;">
+            <div>OPL/DSL Sessions:</div>
+            <div>${stats.byType.OPL + stats.byType.DSL} (${oplDslPercent}%)</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;">
+            <div>PPL Sessions:</div>
+            <div>${stats.byType.PPL} (${pplPercent}%)</div>
+          </div>
+          
+          <div style="height: 20px; border-radius: 10px; margin-top: 15px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; width: ${oplDslPercent}%; height: 100%; background-color: #1a4d1a;"></div>
+            <div style="position: absolute; top: 0; left: ${oplDslPercent}%; width: ${pplPercent}%; height: 100%; background-color: #666666;"></div>
+            <div style="position: absolute; top: 0; width: 100%; text-align: center; color: white; font-size: 0.8em; line-height: 20px; font-weight: bold; text-shadow: 0 0 2px rgba(0,0,0,0.7);">
+              ${oplDslPercent}% OPL/DSL - ${pplPercent}% PPL
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h3 style="margin-bottom: 10px;">By Teacher</h3>
+      `;
+      
+      // Add teacher stats
+      let rowIndex = 0;
+      for (const [teacher, data] of Object.entries(stats.byTeacher)) {
+        const teacherOplDslPercent = ((data.OPL + data.DSL) / data.total * 100).toFixed(1);
+        const teacherPplPercent = (data.PPL / data.total * 100).toFixed(1);
+        
+        const bgColor = rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent';
+        rowIndex++;
+        
+        html += `
+          <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${bgColor}; border-radius: 5px;">
+            <div>${teacher}:</div>
+            <div>${data.total} sessions</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
+            <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
+            <div>PPL: ${data.PPL} (${teacherPplPercent}%)</div>
+          </div>
+        `;
+        rowIndex++;
+      }
+      
+      html += `</div>`;
+      
+      content.innerHTML = html;
+      
+    } catch (error) {
+      console.error('Error displaying stats:', error);
+      content.innerHTML = '<p>Error loading statistics. Please try again.</p>';
+    }
+  });
+}
+
+// Update this function to also style the buttons in dark mode
+function updateStatsForDarkMode(isDark) {
+  const popup = document.getElementById('stats-popup');
+  const darkModeBtn = document.getElementById('dark-mode-toggle');
+  const statsBtn = document.getElementById('stats-button');
+  
+  // Update popup styles
+  if (popup) {
+    if (isDark) {
+      popup.style.backgroundColor = '#2d2d2d';
+      popup.style.color = '#e0e0e0';
+      popup.style.border = '1px solid #444';
+    } else {
+      popup.style.backgroundColor = 'rgb(247, 244, 244)';
+      popup.style.color = '#333';
+      popup.style.border = '1px solid #e0e0e0';
+    }
+  }
+  
+  // Update button styles
+  const buttonStyle = isDark ? 
+    { bg: '#2d2d2d', color: '#e0e0e0', border: '1px solid #444' } : 
+    { bg: 'rgb(247, 244, 244)', color: '#333', border: '1px solid #e0e0e0' };
+  
+  if (darkModeBtn) {
+    darkModeBtn.style.backgroundColor = buttonStyle.bg;
+    darkModeBtn.style.color = buttonStyle.color;
+    darkModeBtn.style.borderColor = buttonStyle.border;
+  }
+  
+  if (statsBtn) {
+    statsBtn.style.backgroundColor = buttonStyle.bg;
+    statsBtn.style.color = buttonStyle.color;
+    statsBtn.style.borderColor = buttonStyle.border;
+  }
+}
+
+// Modify initDarkMode to call updateStatsForDarkMode
 function initDarkMode() {
   // Check for saved user preference or system preference
   const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
@@ -262,222 +433,54 @@ function initDarkMode() {
     document.body.classList.add('dark-mode');
   }
   
-  // Create toggle button
-  const toggleBtn = document.createElement('button');
-  toggleBtn.id = 'dark-mode-toggle';
-  toggleBtn.innerHTML = isDarkMode ? 
-    '<i class="fas fa-lightbulb"></i>' : 
-    '<i class="fas fa-moon"></i>';
-  toggleBtn.setAttribute('aria-label', isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode');
-  toggleBtn.title = isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+  // Get the toggle button
+  const toggleBtn = document.getElementById('dark-mode-toggle');
   
-  // Add toggle functionality
-  toggleBtn.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDark);
-    toggleBtn.innerHTML = isDark ? 
+  if (toggleBtn) {
+    // Set initial button state
+    toggleBtn.innerHTML = isDarkMode ? 
       '<i class="fas fa-lightbulb"></i>' : 
       '<i class="fas fa-moon"></i>';
-    toggleBtn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
-    toggleBtn.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-  });
-  
-  // Add button to the DOM
-  document.body.appendChild(toggleBtn);
-  
-  // Listen for system preference changes
-  if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-      if (localStorage.getItem('darkMode') === null) {
-        if (e.matches) {
-          document.body.classList.add('dark-mode');
-          toggleBtn.innerHTML = '<i class="fas fa-lightbulb"></i>';
-          toggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
-          toggleBtn.title = 'Switch to Light Mode';
-        } else {
-          document.body.classList.remove('dark-mode');
-          toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
-          toggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
-          toggleBtn.title = 'Switch to Dark Mode';
-        }
-      }
-    });
-  }
-}
-
-// Add this function to create the stats button and handle the popup
-function initStatsButton() {
-  // Create stats button
-  const statsBtn = document.createElement('button');
-  statsBtn.id = 'stats-button';
-  statsBtn.innerHTML = '<i class="fas fa-chart-bar"></i>';
-  statsBtn.setAttribute('aria-label', 'View Statistics');
-  statsBtn.title = 'View Statistics';
-  
-  // Create popup overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'popup-overlay';
-  
-  // Create popup container
-  const popup = document.createElement('div');
-  popup.className = 'stats-popup';
-  
-  // Add close button to popup
-  const closeBtn = document.createElement('div');
-  closeBtn.className = 'stats-close';
-  closeBtn.innerHTML = '&times;';
-  closeBtn.onclick = function() {
-    popup.style.display = 'none';
-    overlay.style.display = 'none';
-  };
-  
-  popup.appendChild(closeBtn);
-  
-  // Add button click event
-  statsBtn.addEventListener('click', async function() {
-    // Show loading state
-    popup.innerHTML = '<h2>Loading Statistics...</h2>';
-    popup.appendChild(closeBtn);
-    popup.style.display = 'block';
-    overlay.style.display = 'block';
+    toggleBtn.setAttribute('aria-label', isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+    toggleBtn.title = isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode';
     
-    // Calculate and display stats
-    await calculateAndDisplayStats(popup);
-  });
-  
-  // Add elements to DOM
-  document.body.appendChild(statsBtn);
-  document.body.appendChild(overlay);
-  document.body.appendChild(popup);
-  
-  // Close popup when clicking overlay
-  overlay.addEventListener('click', function() {
-    popup.style.display = 'none';
-    overlay.style.display = 'none';
-  });
-}
-
-// Function to calculate and display statistics
-async function calculateAndDisplayStats(popup) {
-  const sessions = await getAllSessions();
-  
-  if (!sessions || sessions.length === 0) {
-    popup.innerHTML = '<h2>Statistics</h2><p>No session data available.</p>';
-    const closeBtn = document.createElement('div');
-    closeBtn.className = 'stats-close';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.onclick = function() {
-      popup.style.display = 'none';
-      document.querySelector('.popup-overlay').style.display = 'none';
-    };
-    popup.appendChild(closeBtn);
-    return;
-  }
-  
-  // Calculate stats
-  const stats = {
-    total: sessions.length,
-    byType: {
-      OPL: sessions.filter(s => s.sessionType === 'OPL').length,
-      DSL: sessions.filter(s => s.sessionType === 'DSL').length,
-      PPL: sessions.filter(s => s.sessionType === 'PPL').length
-    },
-    byTeacher: {}
-  };
-  
-  // Count by teacher and session type
-  sessions.forEach(session => {
-    // Extract teacher from filename in details
-    const teacher = session.details.includes('colic') ? 'Colic' : 
-                   session.details.includes('meyer') ? 'Meyer' : 
-                   session.details.includes('rapisadra') ? 'Rapisarda' : 'Unknown';
-    
-    if (!stats.byTeacher[teacher]) {
-      stats.byTeacher[teacher] = {
-        total: 0,
-        OPL: 0,
-        DSL: 0,
-        PPL: 0
-      };
-    }
-    
-    stats.byTeacher[teacher].total++;
-    stats.byTeacher[teacher][session.sessionType]++;
-  });
-  
-  // Calculate percentages
-  const oplDslPercent = ((stats.byType.OPL + stats.byType.DSL) / stats.total * 100).toFixed(1);
-  const pplPercent = (stats.byType.PPL / stats.total * 100).toFixed(1);
-  
-  // Build HTML
-  let html = `
-    <h2>Session Statistics</h2>
-    <div class="stats-section">
-      <h3>Overall</h3>
-      <div class="stats-row">
-        <div>Total Sessions:</div>
-        <div>${stats.total}</div>
-      </div>
-      <div class="stats-row">
-        <div>OPL/DSL Sessions:</div>
-        <div>${stats.byType.OPL + stats.byType.DSL} (${oplDslPercent}%)</div>
-      </div>
-      <div class="stats-row">
-        <div>PPL Sessions:</div>
-        <div>${stats.byType.PPL} (${pplPercent}%)</div>
-      </div>
+    // Add toggle functionality
+    toggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+      toggleBtn.innerHTML = isDark ? 
+        '<i class="fas fa-lightbulb"></i>' : 
+        '<i class="fas fa-moon"></i>';
+      toggleBtn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+      toggleBtn.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
       
-      <div class="stats-bar">
-        <div class="stats-bar-label">${oplDslPercent}% OPL/DSL - ${pplPercent}% PPL</div>
-      </div>
-    </div>
+      // Add this line to update stats popup colors
+      updateStatsForDarkMode(isDark);
+    });
     
-    <div class="stats-section">
-      <h3>By Teacher</h3>
-  `;
-  
-  // Add teacher stats
-  for (const [teacher, data] of Object.entries(stats.byTeacher)) {
-    const teacherOplDslPercent = ((data.OPL + data.DSL) / data.total * 100).toFixed(1);
-    const teacherPplPercent = (data.PPL / data.total * 100).toFixed(1);
-    
-    html += `
-      <div class="stats-row">
-        <div>${teacher}:</div>
-        <div>${data.total} sessions</div>
-      </div>
-      <div class="stats-row">
-        <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
-        <div>PPL: ${data.PPL} (${teacherPplPercent}%)</div>
-      </div>
-    `;
+    // Listen for system preference changes
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (localStorage.getItem('darkMode') === null) {
+          if (e.matches) {
+            document.body.classList.add('dark-mode');
+            toggleBtn.innerHTML = '<i class="fas fa-lightbulb"></i>';
+            toggleBtn.setAttribute('aria-label', 'Switch to Light Mode');
+            toggleBtn.title = 'Switch to Light Mode';
+          } else {
+            document.body.classList.remove('dark-mode');
+            toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            toggleBtn.setAttribute('aria-label', 'Switch to Dark Mode');
+            toggleBtn.title = 'Switch to Dark Mode';
+          }
+        }
+      });
+    }
   }
   
-  // Close the HTML
-  html += `</div>`;
-  
-  popup.innerHTML = html;
-  
-  // Re-add close button
-  const closeBtn = document.createElement('div');
-  closeBtn.className = 'stats-close';
-  closeBtn.innerHTML = '&times;';
-  closeBtn.onclick = function() {
-    popup.style.display = 'none';
-    document.querySelector('.popup-overlay').style.display = 'none';
-  };
-  popup.appendChild(closeBtn);
-  
-  // Update the stats bar width to match the percentage
-  const statsBar = popup.querySelector('.stats-bar');
-  if (statsBar) {
-    statsBar.style.background = `linear-gradient(to right, 
-      #1a4d1a 0%, 
-      #1a4d1a ${oplDslPercent}%, 
-      #666666 ${oplDslPercent}%, 
-      #666666 100%)`;
-  }
+  // Call this initially to set the right colors
+  updateStatsForDarkMode(document.body.classList.contains('dark-mode'));
 }
 
 // Function to get all sessions across all Excel files

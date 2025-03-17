@@ -3,8 +3,8 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Serve static files from the root directory
-app.use(express.static(__dirname));
+// Serve static files from the current directory
+app.use(express.static(path.join(__dirname)));
 
 // Serve the index.html file for all routes
 app.get('*', (req, res) => {
