@@ -171,10 +171,16 @@ function excelSerialToDateTable(serial) {
     
     const sessionType = firstRow.textContent;
     
+    // First, remove any existing animation class
+    header.classList.remove('green-glow');
+    header.classList.remove('red-glow');
+    
     if (sessionType === 'OPL' || sessionType === 'DSL') {
         header.style.backgroundColor = '#90EE90'; // Light green background
+        header.classList.add('green-glow');
     } else if (sessionType === 'PPL') {
-        header.style.backgroundColor = '#FFFFFF'; // White background
+        header.style.backgroundColor = 'transparent'; // Transparent background
+        header.classList.add('red-glow');
     }
   }
   

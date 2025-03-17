@@ -88,7 +88,7 @@ body {
     left: 0;
     width: 0;
     height: 100%;
-    background-color: lightcoral;
+    background-color: transparent;
     z-index: -1;
     animation: expandBackground 1s ease-in-out 0.5s forwards;
     border-radius: 10px;
@@ -343,22 +343,183 @@ tr:last-child td:last-child {
 
 /* Week navigation styles */
 #week-navigation button {
-  background-color: #cfcfcf;
-  border: none;
+  background-color: rgb(247, 244, 244);
+  border: 1px solid #e0e0e0;
   padding: 10px 15px;
-  border-radius: 5px;
+  border-radius: 10px;
   font-family: 'nMedium', sans-serif;
-  font-size: 1em;
+  font-size: 1.2em;
+  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0 5px;
 }
 
 #week-navigation button:hover {
-  background-color: #b0b0b0;
+  background-color: #e0e0e0;
 }
 
 #week-display {
   font-family: 'nMedium', sans-serif;
   font-size: 1.2em;
   margin-top: 10px;
+}
+
+/* Dark mode styles */
+#dark-mode-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: rgb(247, 244, 244);
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+#dark-mode-toggle:hover {
+  background-color: #e0e0e0;
+}
+
+/* Base dark mode styles */
+.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.dark-mode #next-session {
+  color: #f0f0f0;
+}
+
+.dark-mode .day-label {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+.dark-mode table {
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode th {
+  background-color: #333;
+  color: #f0f0f0;
+}
+
+.dark-mode td {
+  background-color: #242424;
+  color: #e0e0e0;
+}
+
+/* Preserve semantic colors in dark mode */
+.dark-mode .green-row td {
+  background-color: #1a4d1a; /* Darker green */
+  color: #e0e0e0;
+}
+
+.dark-mode .red-row td {
+  background-color: #3d3d3d; /* Gray instead of red in dark mode */
+  color: #e0e0e0;
+}
+
+.dark-mode .highlight-row td {
+  background-color: #5e2727; /* Darker highlight red */
+  color: #e0e0e0;
+}
+
+/* Dark mode for timetable slots */
+.dark-mode .timetable-slot {
+  background-color: #333 !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .mon-slot,
+.dark-mode .wed-slot,
+.dark-mode .thr-slot,
+.dark-mode .fri-slot {
+  background-color: #333 !important;
+  color: #e0e0e0;
+}
+
+/* Special cases for color-coded slots in dark mode */
+.dark-mode .mon-slot[style*="background-color: rgb(132, 204, 132)"],
+.dark-mode .wed-slot[style*="background-color: rgb(132, 204, 132)"],
+.dark-mode .thr-slot[style*="background-color: rgb(132, 204, 132)"],
+.dark-mode .fri-slot[style*="background-color: rgb(132, 204, 132)"],
+.dark-mode .timetable-slot[style*="background-color: rgb(132, 204, 132)"] {
+  background-color: #1a4d1a !important; /* Darker green for OPL/DSL */
+}
+
+/* Make PPL tiles in dark mode even lighter with white text */
+.dark-mode .mon-slot[style*="background-color: white"],
+.dark-mode .wed-slot[style*="background-color: white"],
+.dark-mode .thr-slot[style*="background-color: white"],
+.dark-mode .fri-slot[style*="background-color: white"],
+.dark-mode .timetable-slot[style*="background-color: white"] {
+  background-color: #666666 !important; /* Lighter gray for PPL */
+  color: white !important; /* White text for better contrast */
+}
+
+/* Make sure PPL cells in table are also visibly different with white text */
+.dark-mode td[style*="background-color: white"] {
+  background-color: #666666 !important;
+  color: white !important;
+}
+
+/* And for red rows (PPL sessions) */
+.dark-mode .red-row td {
+  background-color: #666666; /* Lighter gray for PPL rows */
+  color: white;
+}
+
+.dark-mode .star::after {
+  background-color: #555;
+  color: #fff;
+}
+
+/* Dark mode for week navigation buttons */
+.dark-mode #week-navigation button {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+.dark-mode #week-navigation button:hover {
+  background-color: #3d3d3d;
+}
+
+.dark-mode #dark-mode-toggle {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+.dark-mode #dark-mode-toggle:hover {
+  background-color: #3d3d3d;
+}
+
+/* Style for PPL sessions in timetable (white background with white text) */
+.mon-slot[style*="background-color: white"],
+.wed-slot[style*="background-color: white"],
+.thr-slot[style*="background-color: white"],
+.fri-slot[style*="background-color: white"],
+.timetable-slot[style*="background-color: white"] {
+  color: white !important; /* White text for PPL in light mode */
+}
+
+/* Also ensure table cells with white background have white text */
+td[style*="background-color: white"] {
+  color: white !important;
 }
