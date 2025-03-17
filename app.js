@@ -306,8 +306,240 @@ function initDarkMode() {
   }
 }
 
+// Add this function to create the stats button and handle the popup
+function initStatsButton() {
+  // Create stats button
+  const statsBtn = document.createElement('button');
+  statsBtn.id = 'stats-button';
+  statsBtn.innerHTML = '<i class="fas fa-chart-bar"></i>';
+  statsBtn.setAttribute('aria-label', 'View Statistics');
+  statsBtn.title = 'View Statistics';
+  
+  // Create popup overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'popup-overlay';
+  
+  // Create popup container
+  const popup = document.createElement('div');
+  popup.className = 'stats-popup';
+  
+  // Add close button to popup
+  const closeBtn = document.createElement('div');
+  closeBtn.className = 'stats-close';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.onclick = function() {
+    popup.style.display = 'none';
+    overlay.style.display = 'none';
+  };
+  
+  popup.appendChild(closeBtn);
+  
+  // Add button click event
+  statsBtn.addEventListener('click', async function() {
+    // Show loading state
+    popup.innerHTML = '<h2>Loading Statistics...</h2>';
+    popup.appendChild(closeBtn);
+    popup.style.display = 'block';
+    overlay.style.display = 'block';
+    
+    // Calculate and display stats
+    await calculateAndDisplayStats(popup);
+  });
+  
+  // Add elements to DOM
+  document.body.appendChild(statsBtn);
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+  
+  // Close popup when clicking overlay
+  overlay.addEventListener('click', function() {
+    popup.style.display = 'none';
+    overlay.style.display = 'none';
+  });
+}
+
+// Function to calculate and display statistics
+async function calculateAndDisplayStats(popup) {
+  const sessions = await getAllSessions();
+  
+  if (!sessions || sessions.length === 0) {
+    popup.innerHTML = '<h2>Statistics</h2><p>No session data available.</p>';
+    const closeBtn = document.createElement('div');
+    closeBtn.className = 'stats-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.onclick = function() {
+      popup.style.display = 'none';
+      document.querySelector('.popup-overlay').style.display = 'none';
+    };
+    popup.appendChild(closeBtn);
+    return;
+  }
+  
+  // Calculate stats
+  const stats = {
+    total: sessions.length,
+    byType: {
+      OPL: sessions.filter(s => s.sessionType === 'OPL').length,
+      DSL: sessions.filter(s => s.sessionType === 'DSL').length,
+      PPL: sessions.filter(s => s.sessionType === 'PPL').length
+    },
+    byTeacher: {}
+  };
+  
+  // Count by teacher and session type
+  sessions.forEach(session => {
+    // Extract teacher from filename in details
+    const teacher = session.details.includes('colic') ? 'Colic' : 
+                   session.details.includes('meyer') ? 'Meyer' : 
+                   session.details.includes('rapisadra') ? 'Rapisarda' : 'Unknown';
+    
+    if (!stats.byTeacher[teacher]) {
+      stats.byTeacher[teacher] = {
+        total: 0,
+        OPL: 0,
+        DSL: 0,
+        PPL: 0
+      };
+    }
+    
+    stats.byTeacher[teacher].total++;
+    stats.byTeacher[teacher][session.sessionType]++;
+  });
+  
+  // Calculate percentages
+  const oplDslPercent = ((stats.byType.OPL + stats.byType.DSL) / stats.total * 100).toFixed(1);
+  const pplPercent = (stats.byType.PPL / stats.total * 100).toFixed(1);
+  
+  // Build HTML
+  let html = `
+    <h2>Session Statistics</h2>
+    <div class="stats-section">
+      <h3>Overall</h3>
+      <div class="stats-row">
+        <div>Total Sessions:</div>
+        <div>${stats.total}</div>
+      </div>
+      <div class="stats-row">
+        <div>OPL/DSL Sessions:</div>
+        <div>${stats.byType.OPL + stats.byType.DSL} (${oplDslPercent}%)</div>
+      </div>
+      <div class="stats-row">
+        <div>PPL Sessions:</div>
+        <div>${stats.byType.PPL} (${pplPercent}%)</div>
+      </div>
+      
+      <div class="stats-bar">
+        <div class="stats-bar-label">${oplDslPercent}% OPL/DSL - ${pplPercent}% PPL</div>
+      </div>
+    </div>
+    
+    <div class="stats-section">
+      <h3>By Teacher</h3>
+  `;
+  
+  // Add teacher stats
+  for (const [teacher, data] of Object.entries(stats.byTeacher)) {
+    const teacherOplDslPercent = ((data.OPL + data.DSL) / data.total * 100).toFixed(1);
+    const teacherPplPercent = (data.PPL / data.total * 100).toFixed(1);
+    
+    html += `
+      <div class="stats-row">
+        <div>${teacher}:</div>
+        <div>${data.total} sessions</div>
+      </div>
+      <div class="stats-row">
+        <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
+        <div>PPL: ${data.PPL} (${teacherPplPercent}%)</div>
+      </div>
+    `;
+  }
+  
+  // Close the HTML
+  html += `</div>`;
+  
+  popup.innerHTML = html;
+  
+  // Re-add close button
+  const closeBtn = document.createElement('div');
+  closeBtn.className = 'stats-close';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.onclick = function() {
+    popup.style.display = 'none';
+    document.querySelector('.popup-overlay').style.display = 'none';
+  };
+  popup.appendChild(closeBtn);
+  
+  // Update the stats bar width to match the percentage
+  const statsBar = popup.querySelector('.stats-bar');
+  if (statsBar) {
+    statsBar.style.background = `linear-gradient(to right, 
+      #1a4d1a 0%, 
+      #1a4d1a ${oplDslPercent}%, 
+      #666666 ${oplDslPercent}%, 
+      #666666 100%)`;
+  }
+}
+
+// Function to get all sessions across all Excel files
+async function getAllSessions() {
+  const sessions = [];
+  const filePaths = [
+    "./sheets/colic.xlsx",
+    "./sheets/meyer.xlsx",
+    "./sheets/rapisadra.xlsx",
+  ];
+
+  for (const filePath of filePaths) {
+    try {
+      const response = await fetch(filePath);
+      const arrayBuffer = await response.arrayBuffer();
+      const data = new Uint8Array(arrayBuffer);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      jsonData.forEach((row) => {
+        const columnBValue = row[1]; // date
+        const columnEValue = row[4]; // details
+        const columnFValue = row[5]; // session type
+        const columnGValue = row[6]; // note
+        const columnMValue = row[12]; // date
+        const columnOValue = row[14]; // details
+        const columnPValue = row[15]; // session type
+        const columnQValue = row[16]; // note
+
+        if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
+          const date = excelSerialToDate(columnBValue);
+          sessions.push({
+            date: date,
+            sessionType: columnFValue,
+            details: filePath, // Store file path to identify teacher
+            note: columnGValue || "",
+          });
+        }
+
+        if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
+          const date = excelSerialToDate(columnMValue);
+          sessions.push({
+            date: date,
+            sessionType: columnPValue,
+            details: filePath, // Store file path to identify teacher
+            note: columnQValue || "",
+          });
+        }
+      });
+    } catch (error) {
+      console.error(`Error processing file ${filePath}:`, error);
+    }
+  }
+
+  return sessions;
+}
+
 window.onload = function() {
   loadAllWeekSessions();  // For the timetable visualization with all week sessions
   loadExcelFilesTable();  // For the table display
   initDarkMode();
+  initStatsButton();
 };

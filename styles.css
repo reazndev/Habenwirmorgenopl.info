@@ -523,3 +523,167 @@ tr:last-child td:last-child {
 td[style*="background-color: white"] {
   color: white !important;
 }
+
+/* Stats button and popup styles */
+#stats-button {
+  position: fixed;
+  top: 70px; /* Below the dark mode toggle */
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: rgb(247, 244, 244);
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+#stats-button:hover {
+  background-color: #e0e0e0;
+}
+
+.dark-mode #stats-button {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+.dark-mode #stats-button:hover {
+  background-color: #3d3d3d;
+}
+
+.stats-popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 600px;
+  background-color: rgb(247, 244, 244);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 2000;
+  padding: 20px;
+  text-align: left;
+  max-height: 80vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #aaa #f0f0f0;
+}
+
+.dark-mode .stats-popup {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  scrollbar-color: #666 #333;
+}
+
+.stats-popup h2 {
+  font-family: 'nMedium', sans-serif;
+  margin-top: 0;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dark-mode .stats-popup h2 {
+  border-bottom: 1px solid #444;
+}
+
+.stats-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.5em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  padding: 8px;
+  border-radius: 5px;
+}
+
+.stats-row:nth-child(even) {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.dark-mode .stats-row:nth-child(even) {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.stats-bar {
+  height: 20px;
+  background: linear-gradient(to right, #1a4d1a, #666666);
+  border-radius: 10px;
+  margin-top: 5px;
+  position: relative;
+}
+
+.stats-bar-label {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-size: 0.8em;
+  line-height: 20px;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0,0,0,0.7);
+}
+
+.popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1500;
+}
+
+/* Custom scrollbar styling for stats popup */
+.stats-popup::-webkit-scrollbar {
+  width: 8px;
+}
+
+.stats-popup::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.stats-popup::-webkit-scrollbar-thumb {
+  background-color: #aaa;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+}
+
+.stats-popup::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}
+
+/* Dark mode scrollbar */
+.dark-mode .stats-popup::-webkit-scrollbar-track {
+  background: #333;
+}
+
+.dark-mode .stats-popup::-webkit-scrollbar-thumb {
+  background-color: #666;
+  border: 1px solid #333;
+}
+
+.dark-mode .stats-popup::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}
