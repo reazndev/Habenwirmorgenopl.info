@@ -687,3 +687,23 @@ td[style*="background-color: white"] {
 .dark-mode .stats-popup::-webkit-scrollbar-thumb:hover {
   background-color: #888;
 }
+
+/* Add this new rule after the existing .dark-mode #next-session rule (around line 402) */
+.dark-mode #next-session.green-glow {
+  color: #1a4d1a; /* This is the same dark green used in the table */
+}
+
+
+
+/* If the above selector doesn't work (it's not widely supported), 
+   you may need to add classes in JavaScript instead */
+
+.dark-mode #next-session.green-text {
+  color: #f0f0f0; /* Same green as in the table */
+  background-color: #1a4d1a !important;
+}
+
+/* Add this rule to make the header background match the dark green table rows in dark mode */
+.dark-mode #next-session.green-glow::before {
+  background-color: #1a4d1a !important; /* Same dark green as in the table */
+}

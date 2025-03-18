@@ -117,6 +117,7 @@ function excelSerialToDateTable(serial) {
         nextSessionElement.classList.add("red-glow");
       } else {
         nextSessionElement.classList.add("green-glow");
+        nextSessionElement.classList.add("green-text");
       }
     } else {
       nextSessionElement.textContent = "No upcoming sessions found.";
