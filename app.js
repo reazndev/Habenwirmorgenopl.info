@@ -267,6 +267,8 @@ function initStatsButton() {
   function closePopup() {
     popup.style.display = 'none';
     overlay.style.display = 'none';
+    // Remove the no-scroll class to re-enable scrolling
+    document.body.classList.remove('no-scroll');
   }
   
   // Add event listeners
@@ -278,6 +280,9 @@ function initStatsButton() {
     content.innerHTML = '<p>Loading statistics...</p>';
     popup.style.display = 'block';
     overlay.style.display = 'block';
+    
+    // Add the no-scroll class to prevent background scrolling
+    document.body.classList.add('no-scroll');
     
     try {
       const sessions = await getAllSessions();
@@ -324,17 +329,17 @@ function initStatsButton() {
       // Build HTML with inline styles
       let html = `
         <div style="margin-bottom: 20px;">
-          <h3 style="margin-bottom: 10px;">Overall</h3>
+          <h3 style="margin-bottom: 10px;">Übersicht</h3>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;">
-            <div>Total Sessions:</div>
+            <div>Gesamt Einheiten:</div>
             <div>${stats.total}</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; border-radius: 5px;">
-            <div>OPL/DSL Sessions:</div>
+            <div>OPL/DSL Einheiten:</div>
             <div>${stats.byType.OPL + stats.byType.DSL} (${oplDslPercent}%)</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;">
-            <div>PPL Sessions:</div>
+            <div>PPL Einheiten:</div>
             <div>${stats.byType.PPL} (${pplPercent}%)</div>
           </div>
           
@@ -348,8 +353,8 @@ function initStatsButton() {
         </div>
         
         <div>
-          <h3 style="margin-bottom: 10px;">By Teacher</h3>
-      `;
+          <h3 style="margin-bottom: 10px;">Nach Lehrer</h3>
+        `;
       
       // Add teacher stats
       let rowIndex = 0;
@@ -363,7 +368,7 @@ function initStatsButton() {
         html += `
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${bgColor}; border-radius: 5px;">
             <div>${teacher}:</div>
-            <div>${data.total} sessions</div>
+            <div>${data.total} Einheiten</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
             <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
@@ -539,6 +544,74 @@ async function getAllSessions() {
 
   return sessions;
 }
+
+// Update the stats popup text to German
+function updateStatsPopupText() {
+  // Update the popup title
+  const statsPopupTitle = document.querySelector('#stats-popup h2');
+  if (statsPopupTitle) {
+    statsPopupTitle.textContent = 'Statistik';
+  }
+  
+  // Update the stats button tooltip
+  const statsButton = document.getElementById('stats-button');
+  if (statsButton) {
+    statsButton.title = 'Statistik anzeigen';
+    statsButton.setAttribute('aria-label', 'Statistik anzeigen');
+  }
+  
+  // Translate the content when it's being generated
+  const translateStatsContent = function() {
+    // Find all text nodes in the stats content
+    const statsContent = document.getElementById('stats-content');
+    if (!statsContent) return;
+    
+    // Replace specific English terms with German equivalents
+    const textReplacements = {
+      'Session Statistics': 'Statistik',
+      'sessions': 'Einheiten',
+      'session': 'Einheit',
+      'Sessions': 'Einheiten',
+      'Session': 'Einheit',
+      'Total': 'Gesamt',
+      'Upcoming': 'Bevorstehend',
+      'DSL': 'DSL',
+      'OPL': 'OPL',
+      'PPL': 'PPL',
+      'by type': 'nach Typ',
+      'by module': 'nach Modul',
+      'Close': 'Schließen',
+      'Distribution': 'Verteilung',
+      'Percentage': 'Prozentsatz',
+      'Module': 'Modul',
+      'Type': 'Typ',
+      'Count': 'Anzahl'
+    };
+    
+    // Replace all occurrences in the HTML content
+    let htmlContent = statsContent.innerHTML;
+    for (const [english, german] of Object.entries(textReplacements)) {
+      const regex = new RegExp(english, 'g');
+      htmlContent = htmlContent.replace(regex, german);
+    }
+    statsContent.innerHTML = htmlContent;
+  };
+  
+  // Call this function whenever the stats content is updated
+  const originalCreateStats = window.createStats || function(){};
+  window.createStats = function() {
+    originalCreateStats.apply(this, arguments);
+    translateStatsContent();
+  };
+  
+  // Also translate immediately if content exists
+  translateStatsContent();
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  updateStatsPopupText();
+});
 
 window.onload = function() {
   loadAllWeekSessions();  // For the timetable visualization with all week sessions

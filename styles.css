@@ -652,6 +652,8 @@ td[style*="background-color: white"] {
   bottom: 0;
   background-color: rgba(0,0,0,0.5);
   z-index: 1500;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 /* Custom scrollbar styling for stats popup */
@@ -706,4 +708,15 @@ td[style*="background-color: white"] {
 /* Add this rule to make the header background match the dark green table rows in dark mode */
 .dark-mode #next-session.green-glow::before {
   background-color: #1a4d1a !important; /* Same dark green as in the table */
+}
+
+/* Add backdrop blur to the stats overlay */
+.popup-overlay, #stats-overlay {
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* Add a no-scroll class to prevent background scrolling */
+body.no-scroll {
+  overflow: hidden;
 }

@@ -159,6 +159,9 @@ function excelSerialToDateTable(serial) {
     });
   
     updateHeaderColor();
+  
+    // Add this line at the end of loadExcelFilesTable or in your initialization code
+    addEscKeyListener();
   }
   
   function updateHeaderColor() {
@@ -185,5 +188,22 @@ function excelSerialToDateTable(serial) {
     }
   }
   
-  // Replace window.onload with this in your main script
-  // window.onload = loadExcelFilesTable; 
+  // Add this function to handle the ESC key for closing the stats popup
+  function addEscKeyListener() {
+    document.addEventListener('keydown', function(event) {
+      // Check if the pressed key is ESC (key code 27)
+      if (event.key === 'Escape') {
+        // Get the stats popup and overlay elements
+        const statsPopup = document.getElementById('stats-popup');
+        const statsOverlay = document.getElementById('stats-overlay');
+        
+        // If the popup is visible, close it
+        if (statsPopup && statsPopup.style.display === 'block') {
+          statsPopup.style.display = 'none';
+          if (statsOverlay) {
+            statsOverlay.style.display = 'none';
+          }
+        }
+      }
+    });
+  }
