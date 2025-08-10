@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
+require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -39,6 +40,27 @@ app.get('/api/sessions', async (req, res) => {
     } catch (error) {
         console.error('Error reading sessions:', error);
         res.status(500).json({ success: false, message: 'Failed to load sessions' });
+    }
+});
+
+// API endpoint to verify admin password
+app.post('/api/verify-password', (req, res) => {
+    try {
+        const { password } = req.body;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+        
+        if (!adminPassword) {
+            return res.status(500).json({ success: false, message: 'Admin password not configured' });
+        }
+        
+        if (password === adminPassword) {
+            res.json({ success: true, message: 'Password verified' });
+        } else {
+            res.json({ success: false, message: 'Invalid password' });
+        }
+    } catch (error) {
+        console.error('Error verifying password:', error);
+        res.status(500).json({ success: false, message: 'Failed to verify password' });
     }
 });
 
