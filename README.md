@@ -36,6 +36,3 @@ A website showcasing when we have on premise or online school at BBBaden. Includ
 
 
 <img width="1769" height="1011" alt="image" src="https://github.com/user-attachments/assets/dbe73153-b160-444f-9b58-6804dc5ed427" />
-
-### Calendar View
-
