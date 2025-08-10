@@ -874,15 +874,32 @@ function verifyPassword() {
   const password = document.getElementById('admin-password-input').value;
   const errorDiv = document.getElementById('password-error');
   
-  if (password === 'admin123') { 
-    isAdminMode = true;
-    closePasswordDialog();
-    showAdminPanel();
-  } else {
+  fetch('/api/verify-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ password: password })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      isAdminMode = true;
+      closePasswordDialog();
+      showAdminPanel();
+    } else {
+      errorDiv.style.display = 'block';
+      document.getElementById('admin-password-input').value = '';
+      document.getElementById('admin-password-input').focus();
+    }
+  })
+  .catch(error => {
+    console.error('Error verifying password:', error);
+    errorDiv.textContent = 'Fehler bei der Passwort-Überprüfung!';
     errorDiv.style.display = 'block';
     document.getElementById('admin-password-input').value = '';
     document.getElementById('admin-password-input').focus();
-  }
+  });
 }
 
 function closePasswordDialog() {
