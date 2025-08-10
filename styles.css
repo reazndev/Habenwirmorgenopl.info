@@ -146,6 +146,10 @@ tr:last-child td:last-child {
     background-color: lightgreen;
 }
 
+.exam-row td {
+    background-color: #ff6b6b;
+    color: white;
+}
 
 .highlight-row td {
     background-color: rgb(248, 115, 115);
@@ -204,27 +208,27 @@ tr:last-child td:last-child {
 
 #timetable-container {
     display: grid;
-    grid-template-columns: repeat(10, 1fr); /* 15 columns */
-    grid-template-rows: auto repeat(9, 1fr); /* 10 rows */
-    gap: 10px; /* Space between grid items */
+    grid-template-columns: repeat(10, 1fr); 
+    grid-template-rows: auto repeat(9, 1fr); 
+    gap: 10px; 
     padding-top: 50px;
     padding: 20px;
 }
 
 .timetable-slot {
-    width: 100%; /* Full width of the grid cell */
-    height: 100%; /* Full height of the grid cell */
+    width: 100%;
+    height: 100%;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white; /* Text color */
+    color: white;
     font-weight: bold;
 }
 
-/* Add specific styles for gray slots */
+
 .timetable-slot[style*="background-color: gray;"] {
-    color: black; /* Change text color for gray slots */
+    color: black;
 }
 
 
@@ -233,7 +237,7 @@ tr:last-child td:last-child {
 
 }
 
-.wed-slot {
+.tue-slot {
     border-radius: 10px;
 
 }
@@ -246,18 +250,17 @@ tr:last-child td:last-child {
     border-radius: 10px;
 }
 
-/* Add these styles to your existing CSS */
 @media screen and (max-width: 768px) {
   #timetable-container {
     width: 95% !important; 
     margin: 0 auto;
     height: auto !important;
     min-height: 400px;
-    gap: 5px; /* Smaller gap between grid items on mobile */
-    padding: 10px; /* Smaller padding on mobile */
+    gap: 5px;
+    padding: 10px;
   }
   
-  .mon-slot, .wed-slot, .thr-slot, .fri-slot, .timetable-slot {
+  .mon-slot, .tue-slot, .thr-slot, .fri-slot, .timetable-slot {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -266,8 +269,7 @@ tr:last-child td:last-child {
     max-width: 100%;
     overflow: hidden;
   }
-  
-  /* Adjust day labels for mobile */
+
   .day-label {
     font-size: 0.9em;
     padding: 5px;
@@ -275,8 +277,7 @@ tr:last-child td:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  
-  /* Show abbreviated day names on mobile */
+
   .day-label span {
     display: none;
   }
@@ -288,19 +289,17 @@ tr:last-child td:last-child {
     font-weight: bold;
   }
   
-  /* Adjust slot content for mobile */
-  .mon-slot div, .wed-slot div, .thr-slot div, .fri-slot div, .timetable-slot div {
+ 
+  .mon-slot div, .tue-slot div, .thr-slot div, .fri-slot div, .timetable-slot div {
     padding: 3px !important;
   }
-  
-  /* Adjust font sizes for slot content on mobile */
-  .mon-slot div div, .wed-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
-    font-size: 0.8em !important;
-    line-height: 1.2 !important;
+ 
+  .mon-slot div div, .tue-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
+    font-size: 1.0em !important;
+    line-height: 1.3 !important;
   }
 }
 
-/* Extra small devices (phones, 480px and down) */
 @media screen and (max-width: 480px) {
   .day-label {
     font-size: 0.8em;
@@ -308,7 +307,7 @@ tr:last-child td:last-child {
   }
   
   .day-label[data-short-name]::before {
-    font-size: 1.1em; /* Make the abbreviated day names slightly larger for better visibility */
+    font-size: 1.1em;
   }
   
   #timetable-container {
@@ -316,9 +315,9 @@ tr:last-child td:last-child {
     padding: 5px;
   }
   
-  /* Even smaller font sizes for very small screens */
-  .mon-slot div div, .wed-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
-    font-size: 0.7em !important;
+ 
+  .mon-slot div div, .tue-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
+    font-size: 0.9em !important;
   }
 }
 
@@ -341,7 +340,7 @@ tr:last-child td:last-child {
     border: 1px solid #e0e0e0;
 }
 
-/* Week navigation styles */
+
 #week-navigation button {
   background-color: rgb(247, 244, 244);
   border: 1px solid #e0e0e0;
@@ -367,7 +366,7 @@ tr:last-child td:last-child {
   margin-top: 10px;
 }
 
-/* Dark mode styles */
+
 #dark-mode-toggle {
   position: fixed;
   top: 20px;
@@ -392,7 +391,7 @@ tr:last-child td:last-child {
   background-color: #e0e0e0;
 }
 
-/* Base dark mode styles */
+
 .dark-mode {
   background-color: #121212;
   color: #e0e0e0;
@@ -423,64 +422,98 @@ tr:last-child td:last-child {
   color: #e0e0e0;
 }
 
-/* Preserve semantic colors in dark mode */
+
 .dark-mode .green-row td {
-  background-color: #1a4d1a; /* Darker green */
+  background-color: #1a4d1a;
   color: #e0e0e0;
 }
 
+.dark-mode .exam-row td {
+  background-color: #c0392b;
+  color: white;
+}
+
 .dark-mode .red-row td {
-  background-color: #3d3d3d; /* Gray instead of red in dark mode */
+  background-color: #3d3d3d;
   color: #e0e0e0;
 }
 
 .dark-mode .highlight-row td {
-  background-color: #5e2727; /* Darker highlight red */
+  background-color: #5e2727;
   color: #e0e0e0;
 }
 
-/* Dark mode for timetable slots */
+
 .dark-mode .timetable-slot {
   background-color: #333 !important;
   color: #e0e0e0;
 }
 
 .dark-mode .mon-slot,
-.dark-mode .wed-slot,
+.dark-mode .tue-slot,
 .dark-mode .thr-slot,
 .dark-mode .fri-slot {
   background-color: #333 !important;
   color: #e0e0e0;
 }
 
-/* Special cases for color-coded slots in dark mode */
+
 .dark-mode .mon-slot[style*="background-color: rgb(132, 204, 132)"],
-.dark-mode .wed-slot[style*="background-color: rgb(132, 204, 132)"],
+.dark-mode .tue-slot[style*="background-color: rgb(132, 204, 132)"],
 .dark-mode .thr-slot[style*="background-color: rgb(132, 204, 132)"],
 .dark-mode .fri-slot[style*="background-color: rgb(132, 204, 132)"],
 .dark-mode .timetable-slot[style*="background-color: rgb(132, 204, 132)"] {
-  background-color: #1a4d1a !important; /* Darker green for OPL/DSL */
+  background-color: #1a4d1a !important;
 }
 
-/* Make PPL tiles in dark mode even lighter with white text */
+/* Red background for exam sessions in timetable - both light and dark mode */
+.mon-slot[style*="background-color: rgb(255, 107, 107)"],
+.tue-slot[style*="background-color: rgb(255, 107, 107)"],
+.thr-slot[style*="background-color: rgb(255, 107, 107)"],
+.fri-slot[style*="background-color: rgb(255, 107, 107)"],
+.timetable-slot[style*="background-color: rgb(255, 107, 107)"] {
+  background-color: #ff6b6b !important;
+  color: white !important;
+}
+
+.dark-mode .mon-slot[style*="background-color: rgb(255, 107, 107)"],
+.dark-mode .tue-slot[style*="background-color: rgb(255, 107, 107)"],
+.dark-mode .thr-slot[style*="background-color: rgb(255, 107, 107)"],
+.dark-mode .fri-slot[style*="background-color: rgb(255, 107, 107)"],
+.dark-mode .timetable-slot[style*="background-color: rgb(255, 107, 107)"] {
+  background-color: #c0392b !important;
+  color: white !important;
+}
+
+/* Additional fallback for exam sessions */
+.dark-mode .mon-slot[style*="background-color: #ff6b6b"],
+.dark-mode .tue-slot[style*="background-color: #ff6b6b"],
+.dark-mode .thr-slot[style*="background-color: #ff6b6b"],
+.dark-mode .fri-slot[style*="background-color: #ff6b6b"],
+.dark-mode .timetable-slot[style*="background-color: #ff6b6b"] {
+  background-color: #c0392b !important;
+  color: white !important;
+}
+
+
 .dark-mode .mon-slot[style*="background-color: white"],
-.dark-mode .wed-slot[style*="background-color: white"],
+.dark-mode .tue-slot[style*="background-color: white"],
 .dark-mode .thr-slot[style*="background-color: white"],
 .dark-mode .fri-slot[style*="background-color: white"],
 .dark-mode .timetable-slot[style*="background-color: white"] {
-  background-color: #666666 !important; /* Lighter gray for PPL */
-  color: white !important; /* White text for better contrast */
+  background-color: #666666 !important;
+  color: white !important;
 }
 
-/* Make sure PPL cells in table are also visibly different with white text */
+
 .dark-mode td[style*="background-color: white"] {
   background-color: #666666 !important;
   color: white !important;
 }
 
-/* And for red rows (PPL sessions) */
+
 .dark-mode .red-row td {
-  background-color: #666666; /* Lighter gray for PPL rows */
+  background-color: #666666;
   color: white;
 }
 
@@ -489,7 +522,7 @@ tr:last-child td:last-child {
   color: #fff;
 }
 
-/* Dark mode for week navigation buttons */
+
 .dark-mode #week-navigation button {
   background-color: #2d2d2d;
   color: #e0e0e0;
@@ -510,24 +543,24 @@ tr:last-child td:last-child {
   background-color: #3d3d3d;
 }
 
-/* Style for PPL sessions in timetable (white background with white text) */
+
 .mon-slot[style*="background-color: white"],
-.wed-slot[style*="background-color: white"],
+.tue-slot[style*="background-color: white"],
 .thr-slot[style*="background-color: white"],
 .fri-slot[style*="background-color: white"],
 .timetable-slot[style*="background-color: white"] {
-  color: white !important; /* White text for PPL in light mode */
+  color: white !important;
 }
 
-/* Also ensure table cells with white background have white text */
+
 td[style*="background-color: white"] {
   color: white !important;
 }
 
-/* Stats button and popup styles */
+
 #stats-button {
   position: fixed;
-  top: 70px; /* Below the dark mode toggle */
+  top: 70px;
   right: 20px;
   width: 40px;
   height: 40px;
@@ -549,6 +582,30 @@ td[style*="background-color: white"] {
   background-color: #e0e0e0;
 }
 
+#calendar-button {
+  position: fixed;
+  top: 120px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: rgb(247, 244, 244);
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+#calendar-button:hover {
+  background-color: #e0e0e0;
+}
+
 .dark-mode #stats-button {
   background-color: #2d2d2d;
   color: #e0e0e0;
@@ -556,6 +613,16 @@ td[style*="background-color: white"] {
 }
 
 .dark-mode #stats-button:hover {
+  background-color: #3d3d3d;
+}
+
+.dark-mode #calendar-button {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+.dark-mode #calendar-button:hover {
   background-color: #3d3d3d;
 }
 
@@ -656,7 +723,7 @@ td[style*="background-color: white"] {
   -webkit-backdrop-filter: blur(5px);
 }
 
-/* Custom scrollbar styling for stats popup */
+
 .stats-popup::-webkit-scrollbar {
   width: 8px;
 }
@@ -676,7 +743,7 @@ td[style*="background-color: white"] {
   background-color: #888;
 }
 
-/* Dark mode scrollbar */
+
 .dark-mode .stats-popup::-webkit-scrollbar-track {
   background: #333;
 }
@@ -690,33 +757,209 @@ td[style*="background-color: white"] {
   background-color: #888;
 }
 
-/* Add this new rule after the existing .dark-mode #next-session rule (around line 402) */
+
 .dark-mode #next-session.green-glow {
-  color: #1a4d1a; /* This is the same dark green used in the table */
+  color: #1a4d1a;
 }
 
-
-
-/* If the above selector doesn't work (it's not widely supported), 
-   you may need to add classes in JavaScript instead */
-
 .dark-mode #next-session.green-text {
-  color: #f0f0f0; /* Same green as in the table */
+  color: #f0f0f0;
   background-color: #1a4d1a !important;
 }
 
-/* Add this rule to make the header background match the dark green table rows in dark mode */
+
 .dark-mode #next-session.green-glow::before {
-  background-color: #1a4d1a !important; /* Same dark green as in the table */
+  background-color: #1a4d1a !important;
 }
 
-/* Add backdrop blur to the stats overlay */
+
 .popup-overlay, #stats-overlay {
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
 }
 
-/* Add a no-scroll class to prevent background scrolling */
+
 body.no-scroll {
   overflow: hidden;
+}
+
+.calendar-popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 700px;
+  background-color: rgb(247, 244, 244);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 2000;
+  padding: 20px;
+  text-align: left;
+  max-height: 80vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #aaa #f0f0f0;
+}
+
+.dark-mode .calendar-popup {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  scrollbar-color: #666 #333;
+}
+
+.calendar-popup h2 {
+  font-family: 'nMedium', sans-serif;
+  margin-top: 0;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dark-mode .calendar-popup h2 {
+  border-bottom: 1px solid #444;
+}
+
+.calendar-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.5em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.calendar-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-nav-button {
+  background-color: rgb(247, 244, 244);
+  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'nMedium', sans-serif;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.calendar-nav-button:hover {
+  background-color: #e0e0e0;
+}
+
+.dark-mode .calendar-nav-button {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+.dark-mode .calendar-nav-button:hover {
+  background-color: #3d3d3d;
+}
+
+.calendar-month-year {
+  font-family: 'nMedium', sans-serif;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.calendar-header {
+  text-align: center;
+  font-weight: bold;
+  padding: 10px 5px;
+  background-color: #cfcfcf;
+  font-family: 'nMedium', sans-serif;
+}
+
+.dark-mode .calendar-header {
+  background-color: #333;
+  color: #f0f0f0;
+}
+
+.calendar-day {
+  text-align: center;
+  padding: 8px 4px;
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border-radius: 4px;
+  position: relative;
+}
+
+.calendar-day.other-month {
+  color: #ccc;
+}
+
+.dark-mode .calendar-day.other-month {
+  color: #666;
+}
+
+.calendar-day.weekend {
+  background-color: #f0f0f0;
+}
+
+.dark-mode .calendar-day.weekend {
+  background-color: #1a1a1a;
+}
+
+.calendar-day.session-opl-dsl {
+  background-color: #84cc84;
+  color: white;
+  font-weight: bold;
+}
+
+.dark-mode .calendar-day.session-opl-dsl {
+  background-color: #1a4d1a;
+}
+
+.calendar-day.session-exam {
+  background-color: #ff6b6b;
+  color: white;
+  font-weight: bold;
+}
+
+.dark-mode .calendar-day.session-exam {
+  background-color: #c0392b;
+}
+
+.calendar-day.session-ppl {
+  background-color: #666666;
+  color: white;
+  font-weight: bold;
+}
+
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
 }

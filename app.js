@@ -1,218 +1,293 @@
-function excelSerialToDate(serial) {
-  const utcDays = Math.floor(serial - 25569);
-  const utcValue = utcDays * 86400;
-  const date = new Date(utcValue * 1000);
-  return date;
+
+function createCustomNotification(message, type = 'info', showButtons = false) {
+  
+  const existingNotification = document.getElementById('custom-notification');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  const bgColor = isDarkMode ? '#2d2d2d' : 'rgb(247, 244, 244)';
+  const textColor = isDarkMode ? '#e0e0e0' : '#333';
+  const borderColor = isDarkMode ? '#555' : '#e0e0e0';
+  
+  
+  let accentColor = '#3498db'; 
+  let icon = 'fas fa-info-circle';
+  
+  if (type === 'success') {
+    accentColor = '#27ae60';
+    icon = 'fas fa-check-circle';
+  } else if (type === 'error') {
+    accentColor = '#e74c3c';
+    icon = 'fas fa-exclamation-circle';
+  } else if (type === 'warning') {
+    accentColor = '#f39c12';
+    icon = 'fas fa-exclamation-triangle';
+  } else if (type === 'confirm') {
+    accentColor = '#f39c12';
+    icon = 'fas fa-question-circle';
+  }
+
+  const notificationHTML = `
+    <div id="custom-notification-overlay" style="display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 3500;"></div>
+    <div id="custom-notification" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 300px; max-width: 500px; background-color: ${bgColor}; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 4000; padding: 25px; text-align: center; border: 1px solid ${borderColor};">
+      <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+        <i class="${icon}" style="font-size: 2em; color: ${accentColor}; margin-right: 15px;"></i>
+        <div style="flex: 1; text-align: left;">
+          <div style="font-size: 1.1em; font-weight: 600; color: ${textColor}; line-height: 1.4;">${message}</div>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+        ${showButtons ? `
+          <button id="confirm-yes" style="padding: 10px 20px; background-color: ${accentColor}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+            ${type === 'confirm' ? 'Ja, löschen' : 'OK'}
+          </button>
+          <button id="confirm-no" style="padding: 10px 20px; background-color: #95a5a6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+            Abbrechen
+          </button>
+        ` : `
+          <button id="notification-ok" style="padding: 10px 24px; background-color: ${accentColor}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;">
+            OK
+          </button>
+        `}
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', notificationHTML);
+
+  
+  const buttons = document.querySelectorAll('#custom-notification button');
+  buttons.forEach(button => {
+    const originalBg = button.style.backgroundColor;
+    button.addEventListener('mouseenter', () => {
+      button.style.transform = 'translateY(-1px)';
+      button.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+    });
+    button.addEventListener('mouseleave', () => {
+      button.style.transform = 'translateY(0)';
+      button.style.boxShadow = 'none';
+    });
+  });
+
+  return new Promise((resolve) => {
+    const notification = document.getElementById('custom-notification');
+    const overlay = document.getElementById('custom-notification-overlay');
+    
+    const closeNotification = () => {
+      if (notification) notification.remove();
+      if (overlay) overlay.remove();
+    };
+
+    if (showButtons) {
+      const yesButton = document.getElementById('confirm-yes');
+      const noButton = document.getElementById('confirm-no');
+      
+      if (yesButton) {
+        yesButton.addEventListener('click', () => {
+          closeNotification();
+          resolve(true);
+        });
+      }
+      
+      if (noButton) {
+        noButton.addEventListener('click', () => {
+          closeNotification();
+          resolve(false);
+        });
+      }
+    } else {
+      const okButton = document.getElementById('notification-ok');
+      if (okButton) {
+        okButton.addEventListener('click', () => {
+          closeNotification();
+          resolve(true);
+        });
+      }
+      
+      
+      if (type === 'success') {
+        setTimeout(() => {
+          closeNotification();
+          resolve(true);
+        }, 3000);
+      }
+    }
+
+    
+    if (!showButtons || type !== 'confirm') {
+      overlay.addEventListener('click', () => {
+        closeNotification();
+        resolve(false);
+      });
+    }
+
+    
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        closeNotification();
+        resolve(false);
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+  });
 }
 
-function isDateTodayOrLater(date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date >= today;
+
+function showSuccessNotification(message) {
+  return createCustomNotification(message, 'success');
 }
+
+function showErrorNotification(message) {
+  return createCustomNotification(message, 'error');
+}
+
+function showInfoNotification(message) {
+  return createCustomNotification(message, 'info');
+}
+
+function showConfirmDialog(message) {
+  return createCustomNotification(message, 'confirm', true);
+}
+
+
+let sessions = [];
+let isAdminMode = false;
 
 function getStartOfWeek(date) {
   const startOfWeek = new Date(date);
-  const day = startOfWeek.getDay(); // Get current day of the week (0-6)
-  const diff = startOfWeek.getDate() - day; // Adjust the date to the start of the week
+  const day = startOfWeek.getDay(); 
+  
+  const mondayBasedDay = day === 0 ? 6 : day - 1;
+  const diff = startOfWeek.getDate() - mondayBasedDay; 
   startOfWeek.setDate(diff);
-  startOfWeek.setHours(0, 0, 0, 0); // Set time to the start of the day
+  startOfWeek.setHours(0, 0, 0, 0); 
   return startOfWeek;
 }
 
 function getEndOfWeek(date) {
   const endOfWeek = new Date(date);
-  const day = endOfWeek.getDay(); // Get current day of the week (0-6)
-  const diff = endOfWeek.getDate() + (6 - day); // Adjust the date to the end of the week
+  const day = endOfWeek.getDay(); 
+  
+  const mondayBasedDay = day === 0 ? 6 : day - 1;
+  const diff = endOfWeek.getDate() + (6 - mondayBasedDay); 
   endOfWeek.setDate(diff);
-  endOfWeek.setHours(23, 59, 59, 999); // Set time to the end of the day
+  endOfWeek.setHours(23, 59, 59, 999); 
   return endOfWeek;
 }
 
-// Add a variable to track the current week offset (0 = current week, 1 = next week, etc.)
+
 let currentWeekOffset = 0;
 
-async function processFile(filePath, sessions) {
+async function loadSessionsFromJSON() {
   try {
-    const response = await fetch(filePath);
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    jsonData.forEach((row) => {
-      const columnBValue = row[1]; // date
-      const columnEValue = row[4]; // details
-      const columnFValue = row[5]; // session type
-      const columnGValue = row[6]; // note
-      const columnMValue = row[12]; // date
-      const columnOValue = row[14]; // details
-      const columnPValue = row[15]; // session type
-      const columnQValue = row[16]; // note
-
-      // Process all sessions, not just those in the current week
-      if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
-        const date = excelSerialToDate(columnBValue);
-        if (isDateTodayOrLater(date)) {
-          sessions.push({
-            date: date,
-            sessionType: columnFValue,
-            details: columnEValue || "",
-            note: columnGValue || "",
-          });
-        }
-      }
-
-      if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
-        const date = excelSerialToDate(columnMValue);
-        if (isDateTodayOrLater(date)) {
-          sessions.push({
-            date: date,
-            sessionType: columnPValue,
-            details: columnOValue || "",
-            note: columnQValue || "",
-          });
-        }
-      }
-    });
+    const response = await fetch('./sessions.json');
+    const data = await response.json();
+    sessions = data.sessions.map(session => ({
+      ...session,
+      date: new Date(session.date)
+    }));
+    return sessions;
   } catch (error) {
-    console.error(`Error processing file ${filePath}:`, error);
+    console.error('Error loading sessions:', error);
+    return [];
+  }
+}
+
+async function saveSessionsToJSON(sessionsData) {
+  try {
+    const response = await fetch('/api/sessions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sessions: sessionsData })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save sessions');
+    }
+    
+    console.log('Sessions saved successfully');
+    return true;
+  } catch (error) {
+    console.error('Error saving sessions:', error);
+    return false;
   }
 }
 
 function updateTimetableVisualization(sessions) {
-  // Group sessions by day of week
-  const sessionsByDay = {
-    0: [], // Sunday
-    1: [], // Monday
-    2: [], // Tuesday
-    3: [], // Wednesday
-    4: [], // Thursday
-    5: [], // Friday
-    6: []  // Saturday
+  
+  const sessionsBySlot = {
+    'monday-morning': null,
+    'tuesday-afternoon': null,
+    'friday-afternoon': null
   };
   
   sessions.forEach(session => {
-    const day = session.date.getDay();
-    sessionsByDay[day].push(session);
+    if (session.slot && sessionsBySlot.hasOwnProperty(session.slot)) {
+      sessionsBySlot[session.slot] = session;
+    }
   });
   
-  // Create a reusable function for formatting the slots
-  const updateSlot = (slot, session) => {
-    if (session.sessionType === 'OPL' || session.sessionType === 'DSL') {
-      slot.style.backgroundColor = 'rgb(132, 204, 132)';
-    } else if (session.sessionType === 'PPL') {
-      slot.style.backgroundColor = 'white';
+  
+  const updateSlot = (slotSelector, session) => {
+    const slot = document.querySelector(slotSelector);
+    if (!slot) return;
+    
+    if (session) {
+      
+      if (session.isExam) {
+        slot.style.backgroundColor = '#ff6b6b'; 
+      } else if (session.sessionType === 'OPL' || session.sessionType === 'DSL') {
+        slot.style.backgroundColor = 'rgb(132, 204, 132)';
+      } else if (session.sessionType === 'PPL') {
+        slot.style.backgroundColor = 'white';
+      }
+      
+      const date = session.date.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit'});
+      const textColor = session.sessionType === 'PPL' && !session.isExam ? 'black' : 'white';
+      
+      
+      slot.innerHTML = `
+        <div style="padding: 5px; color: ${textColor}; text-align: center; overflow: hidden; width: 100%;">
+          <div style="font-weight: bold; font-size: clamp(1.0rem, 2.0vw, 1.5rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            ${session.details}
+          </div>
+          <div style="font-size: clamp(0.8rem, 1.5vw, 1.2rem);">${date}</div>
+          <div style="font-size: clamp(0.8rem, 1.5vw, 1.2rem);">${session.sessionType}${session.isExam ? ' (Prüfung)' : ''}</div>
+        </div>
+      `;
+      
+      
+      if (isAdminMode) {
+        slot.style.cursor = 'pointer';
+        slot.onclick = () => editSession(session.slot);
+      }
+    } else {
+      slot.innerHTML = '';
+      slot.style.backgroundColor = '#cfcfcf';
+      slot.style.cursor = isAdminMode ? 'pointer' : 'default';
+      if (isAdminMode) {
+        slot.onclick = () => editSession(slotSelector.replace('.', '').replace('-slot', ''));
+      }
     }
-    
-    const date = session.date.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit'});
-    const textColor = session.sessionType === 'PPL' ? 'black' : 'white';
-    
-    // Enhanced mobile-friendly formatting
-    slot.innerHTML = `
-      <div style="padding: 5px; color: ${textColor}; text-align: center; overflow: hidden; width: 100%;">
-        <div style="font-weight: bold; font-size: clamp(0.7rem, 1.5vw, 1.2rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${session.details}</div>
-        <div style="font-size: clamp(0.6rem, 1.2vw, 1rem);">${date}</div>
-        <div style="font-size: clamp(0.6rem, 1.2vw, 1rem);">${session.sessionType}</div>
-      </div>
-    `;
   };
   
-  // Update Monday slot
-  if (sessionsByDay[1].length > 0) {
-    updateSlot(document.querySelector('.mon-slot'), sessionsByDay[1][0]);
-  } else {
-    document.querySelector('.mon-slot').innerHTML = '';
-    document.querySelector('.mon-slot').style.backgroundColor = '#cfcfcf';
-  }
   
-  // Update Wednesday slot
-  if (sessionsByDay[3].length > 0) {
-    updateSlot(document.querySelector('.wed-slot'), sessionsByDay[3][0]);
-  } else {
-    document.querySelector('.wed-slot').innerHTML = '';
-    document.querySelector('.wed-slot').style.backgroundColor = '#cfcfcf';
-  }
-  
-  // Update Thursday slot
-  if (sessionsByDay[4].length > 0) {
-    updateSlot(document.querySelector('.thr-slot'), sessionsByDay[4][0]);
-  } else {
-    document.querySelector('.thr-slot').innerHTML = '';
-    document.querySelector('.thr-slot').style.backgroundColor = '#cfcfcf';
-  }
-  
-  // Update Friday slot
-  if (sessionsByDay[5].length > 0) {
-    updateSlot(document.querySelector('.fri-slot'), sessionsByDay[5][0]);
-  } else {
-    document.querySelector('.fri-slot').innerHTML = '';
-    document.querySelector('.fri-slot').style.backgroundColor = '#cfcfcf';
-  }
+  updateSlot('.mon-slot', sessionsBySlot['monday-morning']);
+  updateSlot('.tue-slot', sessionsBySlot['tuesday-afternoon']);
+  updateSlot('.fri-slot', sessionsBySlot['friday-afternoon']);
 }
 
-// Function to load all sessions for the current week offset, including past sessions
+
 async function loadAllWeekSessions() {
-  const sessions = [];
-
-  const filePaths = [
-    "./sheets/colic.xlsx",
-    "./sheets/meyer.xlsx",
-    "./sheets/rapisadra.xlsx",
-  ];
-
-  // Process all files without date filtering
-  for (const filePath of filePaths) {
-    try {
-      const response = await fetch(filePath);
-      const arrayBuffer = await response.arrayBuffer();
-      const data = new Uint8Array(arrayBuffer);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-      jsonData.forEach((row) => {
-        const columnBValue = row[1]; // date
-        const columnEValue = row[4]; // details
-        const columnFValue = row[5]; // session type
-        const columnGValue = row[6]; // note
-        const columnMValue = row[12]; // date
-        const columnOValue = row[14]; // details
-        const columnPValue = row[15]; // session type
-        const columnQValue = row[16]; // note
-
-        // Process all sessions without date filtering
-        if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
-          const date = excelSerialToDate(columnBValue);
-          sessions.push({
-            date: date,
-            sessionType: columnFValue,
-            details: columnEValue || "",
-            note: columnGValue || "",
-          });
-        }
-
-        if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
-          const date = excelSerialToDate(columnMValue);
-          sessions.push({
-            date: date,
-            sessionType: columnPValue,
-            details: columnOValue || "",
-            note: columnQValue || "",
-          });
-        }
-      });
-    } catch (error) {
-      console.error(`Error processing file ${filePath}:`, error);
-    }
-  }
-
-  sessions.sort((a, b) => a.date - b.date);
-
-  // Calculate the start and end of the selected week based on the currentWeekOffset
+  await loadSessionsFromJSON();
+  
+  
   const today = new Date();
   const selectedDate = new Date(today.getTime() + currentWeekOffset * 7 * 24 * 60 * 60 * 1000);
   const startOfWeek = getStartOfWeek(selectedDate);
@@ -223,7 +298,7 @@ async function loadAllWeekSessions() {
   );
   console.log(`Sessions for week offset ${currentWeekOffset}:`, sessionsThisWeek);
 
-  // Update the week display
+  
   const weekDisplay = document.getElementById('week-display');
   if (weekDisplay) {
     weekDisplay.textContent = `${startOfWeek.toLocaleDateString('de-DE')} - ${endOfWeek.toLocaleDateString('de-DE')}`;
@@ -232,25 +307,25 @@ async function loadAllWeekSessions() {
   updateTimetableVisualization(sessionsThisWeek);
 }
 
-// Function to navigate to the previous week
+
 function previousWeek() {
   currentWeekOffset--;
   loadAllWeekSessions();
 }
 
-// Function to navigate to the next week
+
 function nextWeek() {
   currentWeekOffset++;
   loadAllWeekSessions();
 }
 
-// Function to reset to the current week
+
 function currentWeek() {
   currentWeekOffset = 0;
   loadAllWeekSessions();
 }
 
-// Simplified stats button functionality
+
 function initStatsButton() {
   const statsBtn = document.getElementById('stats-button');
   const overlay = document.getElementById('stats-overlay');
@@ -263,54 +338,57 @@ function initStatsButton() {
     return;
   }
   
-  // Close popup function
+  
   function closePopup() {
     popup.style.display = 'none';
     overlay.style.display = 'none';
-    // Remove the no-scroll class to re-enable scrolling
+    
     document.body.classList.remove('no-scroll');
   }
   
-  // Add event listeners
+  
   closeBtn.addEventListener('click', closePopup);
   overlay.addEventListener('click', closePopup);
   
   statsBtn.addEventListener('click', async function() {
-    // Show loading state
+    
     content.innerHTML = '<p>Loading statistics...</p>';
     popup.style.display = 'block';
     overlay.style.display = 'block';
     
-    // Add the no-scroll class to prevent background scrolling
+    
     document.body.classList.add('no-scroll');
     
     try {
-      const sessions = await getAllSessions();
+      const allSessions = await getAllSessions();
       
-      if (!sessions || sessions.length === 0) {
+      if (!allSessions || allSessions.length === 0) {
         content.innerHTML = '<p>No session data available.</p>';
         return;
       }
       
-      // Calculate stats
+      
       const stats = {
-        total: sessions.length,
+        total: allSessions.length,
         byType: {
-          OPL: sessions.filter(s => s.sessionType === 'OPL').length,
-          DSL: sessions.filter(s => s.sessionType === 'DSL').length,
-          PPL: sessions.filter(s => s.sessionType === 'PPL').length
+          OPL: allSessions.filter(s => s.sessionType === 'OPL').length,
+          DSL: allSessions.filter(s => s.sessionType === 'DSL').length,
+          PPL: allSessions.filter(s => s.sessionType === 'PPL').length
         },
-        byTeacher: {}
+        byModule: {},
+        byTeacher: {
+          'Colic (Montag)': { total: 0, OPL: 0, DSL: 0, PPL: 0 },
+          'TBD (Dienstag)': { total: 0, OPL: 0, DSL: 0, PPL: 0 },
+          'Colic (Freitag)': { total: 0, OPL: 0, DSL: 0, PPL: 0 }
+        }
       };
       
-      // Count by teacher
-      sessions.forEach(session => {
-        const teacher = session.details.includes('colic') ? 'Colic' : 
-                       session.details.includes('meyer') ? 'Meyer' : 
-                       session.details.includes('rapisadra') ? 'Rapisarda' : 'Unknown';
+      
+      allSessions.forEach(session => {
+        const module = session.details || 'Unknown';
         
-        if (!stats.byTeacher[teacher]) {
-          stats.byTeacher[teacher] = {
+        if (!stats.byModule[module]) {
+          stats.byModule[module] = {
             total: 0,
             OPL: 0,
             DSL: 0,
@@ -318,15 +396,30 @@ function initStatsButton() {
           };
         }
         
-        stats.byTeacher[teacher].total++;
-        stats.byTeacher[teacher][session.sessionType]++;
+        stats.byModule[module].total++;
+        stats.byModule[module][session.sessionType]++;
+        
+        
+        let teacherKey = '';
+        if (session.slot === 'monday-morning') {
+          teacherKey = 'Colic (Montag)';
+        } else if (session.slot === 'tuesday-afternoon') {
+          teacherKey = 'TBD (Dienstag)';
+        } else if (session.slot === 'friday-afternoon') {
+          teacherKey = 'Colic (Freitag)';
+        }
+        
+        if (teacherKey && stats.byTeacher[teacherKey]) {
+          stats.byTeacher[teacherKey].total++;
+          stats.byTeacher[teacherKey][session.sessionType]++;
+        }
       });
       
-      // Calculate percentages
+      
       const oplDslPercent = ((stats.byType.OPL + stats.byType.DSL) / stats.total * 100).toFixed(1);
       const pplPercent = (stats.byType.PPL / stats.total * 100).toFixed(1);
       
-      // Build HTML with inline styles
+      
       let html = `
         <div style="margin-bottom: 20px;">
           <h3 style="margin-bottom: 10px;">Übersicht</h3>
@@ -356,23 +449,52 @@ function initStatsButton() {
           <h3 style="margin-bottom: 10px;">Nach Lehrer</h3>
         `;
       
-      // Add teacher stats
+      
       let rowIndex = 0;
       for (const [teacher, data] of Object.entries(stats.byTeacher)) {
-        const teacherOplDslPercent = ((data.OPL + data.DSL) / data.total * 100).toFixed(1);
-        const teacherPplPercent = (data.PPL / data.total * 100).toFixed(1);
+        if (data.total > 0) { 
+          const teacherOplDslPercent = data.total > 0 ? ((data.OPL + data.DSL) / data.total * 100).toFixed(1) : '0.0';
+          const teacherPplPercent = data.total > 0 ? (data.PPL / data.total * 100).toFixed(1) : '0.0';
+          
+          const bgColor = rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent';
+          rowIndex++;
+          
+          html += `
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${bgColor}; border-radius: 5px;">
+              <div>${teacher}:</div>
+              <div>${data.total} Einheiten</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
+              <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
+              <div>PPL: ${data.PPL} (${teacherPplPercent}%)</div>
+            </div>
+          `;
+          rowIndex++;
+        }
+      }
+      
+      html += `</div>
+        
+        <div>
+          <h3 style="margin-bottom: 10px;">Nach Modul</h3>
+        `;
+      
+      
+      for (const [module, data] of Object.entries(stats.byModule)) {
+        const moduleOplDslPercent = ((data.OPL + data.DSL) / data.total * 100).toFixed(1);
+        const modulePplPercent = (data.PPL / data.total * 100).toFixed(1);
         
         const bgColor = rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent';
         rowIndex++;
         
         html += `
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${bgColor}; border-radius: 5px;">
-            <div>${teacher}:</div>
+            <div>${module}:</div>
             <div>${data.total} Einheiten</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
-            <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
-            <div>PPL: ${data.PPL} (${teacherPplPercent}%)</div>
+            <div>OPL/DSL: ${data.OPL + data.DSL} (${moduleOplDslPercent}%)</div>
+            <div>PPL: ${data.PPL} (${modulePplPercent}%)</div>
           </div>
         `;
         rowIndex++;
@@ -389,13 +511,142 @@ function initStatsButton() {
   });
 }
 
-// Update this function to also style the buttons in dark mode
+
+function initCalendarButton() {
+  const calendarBtn = document.getElementById('calendar-button');
+  const overlay = document.getElementById('calendar-overlay');
+  const popup = document.getElementById('calendar-popup');
+  const closeBtn = document.getElementById('calendar-close');
+  const content = document.getElementById('calendar-content');
+  
+  if (!calendarBtn || !overlay || !popup || !closeBtn || !content) {
+    console.error('Calendar elements not found in the DOM');
+    return;
+  }
+  
+  let currentDate = new Date();
+  
+  
+  function closePopup() {
+    popup.style.display = 'none';
+    overlay.style.display = 'none';
+    document.body.classList.remove('no-scroll');
+  }
+  
+  
+  closeBtn.addEventListener('click', closePopup);
+  overlay.addEventListener('click', closePopup);
+  
+  
+  document.getElementById('prev-month').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+  });
+  
+  document.getElementById('next-month').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+  });
+  
+  
+  async function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    
+    const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                       'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    document.getElementById('current-month').textContent = `${monthNames[month]} ${year}`;
+    
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDay = (firstDay.getDay() + 6) % 7; 
+    
+    
+    const allSessions = await getAllSessions();
+    const monthSessions = allSessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      return sessionDate.getFullYear() === year && sessionDate.getMonth() === month;
+    });
+    
+    
+    const grid = document.querySelector('.calendar-grid');
+    
+    const headers = grid.querySelectorAll('.calendar-header');
+    grid.innerHTML = '';
+    headers.forEach(header => grid.appendChild(header));
+    
+    
+    for (let i = 0; i < startDay; i++) {
+      const emptyDay = document.createElement('div');
+      emptyDay.className = 'calendar-day empty';
+      grid.appendChild(emptyDay);
+    }
+    
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayElement = document.createElement('div');
+      dayElement.className = 'calendar-day';
+      
+      const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const isWeekend = new Date(year, month, day).getDay() === 0 || new Date(year, month, day).getDay() === 6;
+      
+      if (isWeekend) {
+        dayElement.classList.add('weekend');
+      }
+      
+      
+      const daySessions = monthSessions.filter(session => {
+        const sessionDateStr = session.date.toISOString().split('T')[0];
+        return sessionDateStr === currentDateStr;
+      });
+      
+      
+      if (daySessions.length > 0) {
+        const hasExam = daySessions.some(session => session.isExam);
+        const hasOplDsl = daySessions.some(session => session.sessionType === 'OPL' || session.sessionType === 'DSL');
+        const hasPpl = daySessions.some(session => session.sessionType === 'PPL');
+        
+        if (hasExam) {
+          dayElement.classList.add('session-exam');
+        } else if (hasOplDsl) {
+          dayElement.classList.add('session-opl-dsl');
+        } else if (hasPpl) {
+          dayElement.classList.add('session-ppl');
+        }
+      }
+      
+      dayElement.innerHTML = `
+        <div class="day-number">${day}</div>
+      `;
+      
+      grid.appendChild(dayElement);
+    }
+  }
+  
+  
+  calendarBtn.addEventListener('click', async function() {
+    popup.style.display = 'block';
+    overlay.style.display = 'block';
+    document.body.classList.add('no-scroll');
+    
+    await renderCalendar();
+  });
+}
+
+
 function updateStatsForDarkMode(isDark) {
   const popup = document.getElementById('stats-popup');
+  const calendarPopup = document.getElementById('calendar-popup');
+  const adminPanel = document.getElementById('admin-panel');
+  const passwordDialog = document.getElementById('password-dialog');
   const darkModeBtn = document.getElementById('dark-mode-toggle');
   const statsBtn = document.getElementById('stats-button');
+  const calendarBtn = document.getElementById('calendar-button');
   
-  // Update popup styles
+  
   if (popup) {
     if (isDark) {
       popup.style.backgroundColor = '#2d2d2d';
@@ -408,7 +659,78 @@ function updateStatsForDarkMode(isDark) {
     }
   }
   
-  // Update button styles
+  
+  if (calendarPopup) {
+    if (isDark) {
+      calendarPopup.style.backgroundColor = '#2d2d2d';
+      calendarPopup.style.color = '#e0e0e0';
+      calendarPopup.style.border = '1px solid #444';
+    } else {
+      calendarPopup.style.backgroundColor = 'rgb(247, 244, 244)';
+      calendarPopup.style.color = '#333';
+      calendarPopup.style.border = '1px solid #e0e0e0';
+    }
+  }
+  
+  
+  if (adminPanel) {
+    if (isDark) {
+      adminPanel.style.backgroundColor = '#2d2d2d';
+      adminPanel.style.color = '#e0e0e0';
+      adminPanel.style.border = '1px solid #444';
+      
+      
+      const inputs = adminPanel.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.style.backgroundColor = '#2d2d2d';
+        input.style.color = '#e0e0e0';
+        input.style.borderColor = '#555';
+      });
+    } else {
+      adminPanel.style.backgroundColor = 'rgb(247, 244, 244)';
+      adminPanel.style.color = '#333';
+      adminPanel.style.border = '1px solid #e0e0e0';
+      
+      
+      const inputs = adminPanel.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.style.backgroundColor = '#ffffff';
+        input.style.color = '#333';
+        input.style.borderColor = '#ddd';
+      });
+    }
+  }
+  
+  
+  if (passwordDialog) {
+    if (isDark) {
+      passwordDialog.style.backgroundColor = '#2d2d2d';
+      passwordDialog.style.color = '#e0e0e0';
+      passwordDialog.style.border = '1px solid #444';
+      
+      
+      const passwordInput = passwordDialog.querySelector('input');
+      if (passwordInput) {
+        passwordInput.style.backgroundColor = '#2d2d2d';
+        passwordInput.style.color = '#e0e0e0';
+        passwordInput.style.borderColor = '#555';
+      }
+    } else {
+      passwordDialog.style.backgroundColor = 'rgb(247, 244, 244)';
+      passwordDialog.style.color = '#333';
+      passwordDialog.style.border = '1px solid #e0e0e0';
+      
+      
+      const passwordInput = passwordDialog.querySelector('input');
+      if (passwordInput) {
+        passwordInput.style.backgroundColor = '#ffffff';
+        passwordInput.style.color = '#333';
+        passwordInput.style.borderColor = '#ddd';
+      }
+    }
+  }
+  
+  
   const buttonStyle = isDark ? 
     { bg: '#2d2d2d', color: '#e0e0e0', border: '1px solid #444' } : 
     { bg: 'rgb(247, 244, 244)', color: '#333', border: '1px solid #e0e0e0' };
@@ -424,32 +746,38 @@ function updateStatsForDarkMode(isDark) {
     statsBtn.style.color = buttonStyle.color;
     statsBtn.style.borderColor = buttonStyle.border;
   }
+  
+  if (calendarBtn) {
+    calendarBtn.style.backgroundColor = buttonStyle.bg;
+    calendarBtn.style.color = buttonStyle.color;
+    calendarBtn.style.borderColor = buttonStyle.border;
+  }
 }
 
-// Modify initDarkMode to call updateStatsForDarkMode
+
 function initDarkMode() {
-  // Check for saved user preference or system preference
+  
   const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
                    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && 
                     localStorage.getItem('darkMode') !== 'false');
   
-  // Set initial state
+  
   if (isDarkMode) {
     document.body.classList.add('dark-mode');
   }
   
-  // Get the toggle button
+  
   const toggleBtn = document.getElementById('dark-mode-toggle');
   
   if (toggleBtn) {
-    // Set initial button state
+    
     toggleBtn.innerHTML = isDarkMode ? 
       '<i class="fas fa-lightbulb"></i>' : 
       '<i class="fas fa-moon"></i>';
     toggleBtn.setAttribute('aria-label', isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     toggleBtn.title = isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode';
     
-    // Add toggle functionality
+    
     toggleBtn.addEventListener('click', () => {
       document.body.classList.toggle('dark-mode');
       const isDark = document.body.classList.contains('dark-mode');
@@ -460,11 +788,11 @@ function initDarkMode() {
       toggleBtn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
       toggleBtn.title = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
       
-      // Add this line to update stats popup colors
+      
       updateStatsForDarkMode(isDark);
     });
     
-    // Listen for system preference changes
+    
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
         if (localStorage.getItem('darkMode') === null) {
@@ -484,89 +812,453 @@ function initDarkMode() {
     }
   }
   
-  // Call this initially to set the right colors
+  
   updateStatsForDarkMode(document.body.classList.contains('dark-mode'));
 }
 
-// Function to get all sessions across all Excel files
+
 async function getAllSessions() {
-  const sessions = [];
-  const filePaths = [
-    "./sheets/colic.xlsx",
-    "./sheets/meyer.xlsx",
-    "./sheets/rapisadra.xlsx",
-  ];
-
-  for (const filePath of filePaths) {
-    try {
-      const response = await fetch(filePath);
-      const arrayBuffer = await response.arrayBuffer();
-      const data = new Uint8Array(arrayBuffer);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-      jsonData.forEach((row) => {
-        const columnBValue = row[1]; // date
-        const columnEValue = row[4]; // details
-        const columnFValue = row[5]; // session type
-        const columnGValue = row[6]; // note
-        const columnMValue = row[12]; // date
-        const columnOValue = row[14]; // details
-        const columnPValue = row[15]; // session type
-        const columnQValue = row[16]; // note
-
-        if (typeof columnBValue === "number" && columnBValue > 0 && columnFValue) {
-          const date = excelSerialToDate(columnBValue);
-          sessions.push({
-            date: date,
-            sessionType: columnFValue,
-            details: filePath, // Store file path to identify teacher
-            note: columnGValue || "",
-          });
-        }
-
-        if (typeof columnMValue === "number" && columnMValue > 0 && columnPValue) {
-          const date = excelSerialToDate(columnMValue);
-          sessions.push({
-            date: date,
-            sessionType: columnPValue,
-            details: filePath, // Store file path to identify teacher
-            note: columnQValue || "",
-          });
-        }
-      });
-    } catch (error) {
-      console.error(`Error processing file ${filePath}:`, error);
-    }
-  }
-
+  await loadSessionsFromJSON();
   return sessions;
 }
 
-// Update the stats popup text to German
+
+function showPasswordPrompt() {
+  createPasswordDialog();
+}
+
+function createPasswordDialog() {
+  const passwordHTML = `
+    <div id="password-overlay" style="display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 2500;"></div>
+    <div id="password-dialog" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 400px; background-color: rgb(247, 244, 244); border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 3000; padding: 20px; text-align: left;">
+      <div id="password-close" style="position: absolute; top: 10px; right: 15px; font-size: 1.5em; cursor: pointer;">&times;</div>
+      <h2 style="font-family: 'nMedium', sans-serif; margin-top: 0; text-align: center; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;">Admin Zugang</h2>
+      
+      <div style="margin: 20px 0;">
+        <label style="display: block; margin-bottom: 8px; font-weight: bold;">Passwort:</label>
+        <input type="password" id="admin-password-input" style="width: 95%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px;" placeholder="Passwort eingeben">
+        <div id="password-error" style="color: #f44336; margin-top: 8px; display: none;">Falsches Passwort!</div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 20px;">
+        <button onclick="verifyPassword()" style="padding: 10px 20px; background-color: #1A4D1A; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">Anmelden</button>
+        <button onclick="closePasswordDialog()" style="padding: 10px 20px; background-color: #939393ff; color: white; border: none; border-radius: 4px; cursor: pointer;">Abbrechen</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', passwordHTML);
+  
+  
+  if (document.body.classList.contains('dark-mode')) {
+    updateStatsForDarkMode(true);
+  }
+  
+  
+  document.getElementById('password-close').addEventListener('click', closePasswordDialog);
+  document.getElementById('password-overlay').addEventListener('click', closePasswordDialog);
+  
+  
+  const passwordInput = document.getElementById('admin-password-input');
+  passwordInput.focus();
+  
+  
+  passwordInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      verifyPassword();
+    }
+  });
+}
+
+function verifyPassword() {
+  const password = document.getElementById('admin-password-input').value;
+  const errorDiv = document.getElementById('password-error');
+  
+  if (password === 'admin123') { 
+    isAdminMode = true;
+    closePasswordDialog();
+    showAdminPanel();
+  } else {
+    errorDiv.style.display = 'block';
+    document.getElementById('admin-password-input').value = '';
+    document.getElementById('admin-password-input').focus();
+  }
+}
+
+function closePasswordDialog() {
+  const passwordDialog = document.getElementById('password-dialog');
+  const passwordOverlay = document.getElementById('password-overlay');
+  
+  if (passwordDialog) passwordDialog.remove();
+  if (passwordOverlay) passwordOverlay.remove();
+}
+
+function showAdminPanel() {
+  const adminPanel = document.getElementById('admin-panel');
+  if (!adminPanel) {
+    createAdminPanel();
+    
+    if (document.body.classList.contains('dark-mode')) {
+      updateStatsForDarkMode(true);
+    }
+  } else {
+    adminPanel.style.display = 'block';
+  }
+  loadAdminSessions();
+}
+
+function createAdminPanel() {
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  const panelBg = isDarkMode ? '#2d2d2d' : 'rgb(247, 244, 244)';
+  const textColor = isDarkMode ? '#e0e0e0' : '#333';
+  const borderColor = isDarkMode ? '#555' : '#e0e0e0';
+  
+  const adminHTML = `
+    <div id="admin-overlay" style="display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); z-index: 2500;"></div>
+    <div id="admin-panel" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 900px; background-color: ${panelBg}; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 3000; padding: 25px; text-align: left; max-height: 85vh; overflow-y: auto; color: ${textColor};">
+      <div id="admin-close" style="position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: ${textColor};">&times;</div>
+      <h2 style="font-family: 'nMedium', sans-serif; margin-top: 0; text-align: center; padding-bottom: 15px; border-bottom: 1px solid ${borderColor}; color: ${textColor};">Admin Panel</h2>
+      
+      <div style="margin-bottom: 25px;">
+        <h3 style="margin-bottom: 15px; color: ${textColor};">Sessions verwalten</h3>
+        <div id="admin-sessions-list"></div>
+        <button onclick="addNewSession()" 
+                style="margin-top: 15px; padding: 12px 20px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
+                onmouseover="this.style.backgroundColor='#229954'" 
+                onmouseout="this.style.backgroundColor='#27ae60'">
+          Neue Session hinzufügen
+        </button>
+      </div>
+      
+      <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid ${borderColor};">
+        <button onclick="saveAllSessions()" 
+                style="padding: 12px 24px; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 15px; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
+                onmouseover="this.style.backgroundColor='#2980b9'" 
+                onmouseout="this.style.backgroundColor='#3498db'">
+          Alle Änderungen speichern
+        </button>
+        <button onclick="closeAdminPanel()" 
+                style="padding: 12px 24px; background-color: #95a5a6; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
+                onmouseover="this.style.backgroundColor='#7f8c8d'" 
+                onmouseout="this.style.backgroundColor='#95a5a6'">
+          Schließen
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', adminHTML);
+  
+  
+  document.getElementById('admin-close').addEventListener('click', closeAdminPanel);
+  document.getElementById('admin-overlay').addEventListener('click', closeAdminPanel);
+}
+
+function loadAdminSessions() {
+  const sessionsList = document.getElementById('admin-sessions-list');
+  if (!sessionsList) return;
+  
+  sessionsList.innerHTML = '';
+  
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); 
+  
+  const futureSessions = sessions
+    .filter(session => session.date >= today) 
+    .sort((a, b) => a.date - b.date); 
+  
+  if (futureSessions.length === 0) {
+    sessionsList.innerHTML = '<p style="text-align: center; color: #666; font-style: italic; margin: 20px 0;">Keine zukünftigen Sessions gefunden.</p>';
+    return;
+  }
+  
+  futureSessions.forEach((session, originalIndex) => {
+    
+    const sessionIndex = sessions.findIndex(s => s.id === session.id);
+    
+    const sessionDiv = document.createElement('div');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const cardBg = isDarkMode ? '#3a3a3a' : '#f9f9f9';
+    const inputBg = isDarkMode ? '#2d2d2d' : '#ffffff';
+    const inputColor = isDarkMode ? '#e0e0e0' : '#333';
+    const borderColor = isDarkMode ? '#555' : '#ddd';
+    const examColor = isDarkMode ? (session.isExam ? '#c0392b' : '#6c757d') : (session.isExam ? '#ff6b6b' : '#6c757d');
+    const examHoverColor = isDarkMode ? (session.isExam ? '#a93226' : '#5a6268') : (session.isExam ? '#ff5252' : '#5a6268');
+    
+    sessionDiv.style.cssText = `
+      border: 1px solid ${borderColor}; 
+      padding: 20px; 
+      margin: 15px 0; 
+      border-radius: 10px; 
+      background-color: ${cardBg};
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    `;
+    
+    const hasNote = session.note && session.note.trim();
+    
+    sessionDiv.innerHTML = `
+      <div style="display: grid; grid-template-columns: 130px 90px 150px 40px 1fr 90px 90px; gap: 20px; align-items: center; margin-bottom: ${hasNote ? '10px' : '15px'};">
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Datum:</label>
+          <input type="date" value="${session.date.toISOString().split('T')[0]}" onchange="updateSessionWithSlot(${sessionIndex}, 'date', this.value)" 
+                 style="width: 100%; padding: 8px; border: 1px solid ${borderColor}; border-radius: 6px; background-color: ${inputBg}; color: ${inputColor}; font-size: 14px;">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Typ:</label>
+          <select onchange="updateSession(${sessionIndex}, 'sessionType', this.value)" 
+                  style="width: 100%; padding: 8px; border: 1px solid ${borderColor}; border-radius: 6px; background-color: ${inputBg}; color: ${inputColor}; font-size: 14px;">
+            <option value="OPL" ${session.sessionType === 'OPL' ? 'selected' : ''}>OPL</option>
+            <option value="DSL" ${session.sessionType === 'DSL' ? 'selected' : ''}>DSL</option>
+            <option value="PPL" ${session.sessionType === 'PPL' ? 'selected' : ''}>PPL</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Modul:</label>
+          <input type="text" value="${session.details}" onchange="updateSession(${sessionIndex}, 'details', this.value)" 
+                 style="width: 30%; padding: 8px; border: 1px solid ${borderColor}; border-radius: 6px; background-color: ${inputBg}; color: ${inputColor}; font-size: 14px;" 
+                 placeholder="Modulnr">
+        </div>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Prüfung:</label>
+          <button onclick="toggleExam(${sessionIndex})" id="exam-toggle-${sessionIndex}"
+                  style="width: 32px; height: 32px; padding: 4px; background-color: ${examColor}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center;"
+                  onmouseover="this.style.backgroundColor='${examHoverColor}'" 
+                  onmouseout="this.style.backgroundColor='${examColor}'"
+                  title="${session.isExam ? 'Als normale Session markieren' : 'Als Prüfung markieren'}">
+            <i class="fas fa-graduation-cap"></i>
+          </button>
+        </div>
+        <div></div>
+        <div>
+          <label style="margin-left: 55%; display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Notiz:</label>
+          <div style="display: flex; gap: 5px; margin-left: 55%;">
+            <button onclick="toggleNote(${sessionIndex})" id="note-toggle-${sessionIndex}"
+                    style="flex: 1; padding: 8px; background-color: #2D2D2D; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background-color 0.2s;"
+                    onmouseover="this.style.backgroundColor='#535353ff'" 
+                    onmouseout="this.style.backgroundColor='#2D2D2D'">
+              ${hasNote ? 'Edit' : 'Add'}
+            </button>
+          </div>
+        </div>
+        <div style="margin-left: 20%; display: flex; align-items: end; margin-top: 12px;">
+          <button onclick="deleteSession(${sessionIndex})" 
+                  style="margin-top: 7px; padding: 8px 12px; background-color: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background-color 0.2s;"
+                  onmouseover="this.style.backgroundColor='#c0392b'" 
+                  onmouseout="this.style.backgroundColor='#e74c3c'">
+            Delete
+          </button>
+        </div>
+      </div>
+      <div id="note-section-${sessionIndex}" style="display: ${hasNote ? 'block' : 'none'}; margin-top: 10px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Notiz bearbeiten:</label>
+        <textarea onchange="updateSession(${sessionIndex}, 'note', this.value)" 
+                  style="width: 98%; padding: 10px; border: 1px solid ${borderColor}; border-radius: 6px; background-color: ${inputBg}; color: ${inputColor}; font-size: 14px; min-height: 60px; resize: vertical;" 
+                  placeholder="Optionale Notiz hinzufügen">${session.note || ''}</textarea>
+      </div>
+    `;
+    
+    sessionsList.appendChild(sessionDiv);
+  });
+}
+
+function updateSession(index, field, value) {
+  if (field === 'date') {
+    sessions[index][field] = new Date(value);
+  } else {
+    sessions[index][field] = value;
+  }
+  console.log(`Updated session ${index}: ${field} = ${value}`);
+}
+
+function updateSessionWithSlot(index, field, value) {
+  if (field === 'date') {
+    const date = new Date(value);
+    sessions[index][field] = date;
+    
+    
+    const dayOfWeek = date.getDay(); 
+    
+    if (dayOfWeek === 1) { 
+      sessions[index].slot = 'monday-morning';
+    } else if (dayOfWeek === 2) { 
+      sessions[index].slot = 'tuesday-afternoon';
+    } else if (dayOfWeek === 5) { 
+      sessions[index].slot = 'friday-afternoon';
+    } else {
+      
+      sessions[index].slot = 'monday-morning';
+    }
+    
+    console.log(`Updated session ${index}: date = ${value}, auto-assigned slot = ${sessions[index].slot}`);
+  } else {
+    updateSession(index, field, value);
+  }
+}
+
+function toggleNote(index) {
+  const noteSection = document.getElementById(`note-section-${index}`);
+  const toggleButton = document.getElementById(`note-toggle-${index}`);
+  
+  if (noteSection) {
+    const isVisible = noteSection.style.display !== 'none';
+    noteSection.style.display = isVisible ? 'none' : 'block';
+    
+    
+    if (toggleButton) {
+      const hasNote = sessions[index].note && sessions[index].note.trim();
+      if (isVisible) {
+        
+        toggleButton.textContent = hasNote ? 'Edit' : 'Add';
+      } else {
+        
+        toggleButton.textContent = 'Close';
+      }
+    }
+    
+    
+    if (!isVisible) {
+      const textarea = noteSection.querySelector('textarea');
+      if (textarea) {
+        setTimeout(() => textarea.focus(), 100);
+      }
+    }
+  }
+}
+
+function toggleExam(index) {
+  sessions[index].isExam = !sessions[index].isExam;
+  
+  
+  const examButton = document.getElementById(`exam-toggle-${index}`);
+  if (examButton) {
+    const isExam = sessions[index].isExam;
+    examButton.style.backgroundColor = isExam ? '#ff6b6b' : '#6c757d';
+    examButton.title = isExam ? 'Als normale Session markieren' : 'Als Prüfung markieren';
+    
+    
+    examButton.onmouseover = () => {
+      examButton.style.backgroundColor = isExam ? '#ff5252' : '#5a6268';
+    };
+    examButton.onmouseout = () => {
+      examButton.style.backgroundColor = isExam ? '#ff6b6b' : '#6c757d';
+    };
+  }
+  
+  console.log(`Updated session ${index}: isExam = ${sessions[index].isExam}`);
+}
+
+async function deleteSession(index) {
+  const confirmed = await showConfirmDialog('Möchten Sie diese Session wirklich löschen?');
+  if (confirmed) {
+    sessions.splice(index, 1);
+    loadAdminSessions();
+    showSuccessNotification('Session erfolgreich gelöscht!');
+  }
+}
+
+function addNewSession() {
+  const newSession = {
+    id: Date.now().toString(),
+    date: new Date(),
+    sessionType: 'OPL',
+    details: 'Neues Modul',
+    note: '',
+    slot: 'monday-morning',
+    isExam: false
+  };
+  
+  sessions.push(newSession);
+  loadAdminSessions();
+}
+
+async function saveAllSessions() {
+  const sessionsData = sessions.map(session => ({
+    ...session,
+    date: session.date.toISOString().split('T')[0]
+  }));
+  
+  const success = await saveSessionsToJSON(sessionsData);
+  if (success) {
+    showSuccessNotification('Sessions erfolgreich gespeichert!');
+    loadAllWeekSessions(); 
+    loadExcelFilesTable(); 
+  } else {
+    showErrorNotification('Fehler beim Speichern der Sessions!');
+  }
+}
+
+function closeAdminPanel() {
+  isAdminMode = false;
+  const adminPanel = document.getElementById('admin-panel');
+  const adminOverlay = document.getElementById('admin-overlay');
+  
+  if (adminPanel) adminPanel.remove();
+  if (adminOverlay) adminOverlay.remove();
+  
+  
+  loadAllWeekSessions();
+}
+
+function editSession(slot) {
+  if (!isAdminMode) return;
+  
+  const session = sessions.find(s => s.slot === slot);
+  if (session) {
+    
+    showAdminPanel();
+  } else {
+    
+    addNewSession();
+    const newSession = sessions[sessions.length - 1];
+    newSession.slot = slot;
+    loadAdminSessions();
+  }
+}
+
+
+document.addEventListener('keydown', function(event) {
+  if (event.altKey && event.key.toLowerCase() === 'k') {
+    event.preventDefault();
+    if (!isAdminMode) {
+      showPasswordPrompt();
+    } else {
+      showAdminPanel();
+    }
+  }
+  
+  
+  if (event.key === 'Escape') {
+    if (document.getElementById('password-dialog')) {
+      closePasswordDialog();
+    } else if (isAdminMode && document.getElementById('admin-panel')) {
+      closeAdminPanel();
+    }
+  }
+});
+
+
 function updateStatsPopupText() {
-  // Update the popup title
+  
   const statsPopupTitle = document.querySelector('#stats-popup h2');
   if (statsPopupTitle) {
     statsPopupTitle.textContent = 'Statistik';
   }
   
-  // Update the stats button tooltip
+  
   const statsButton = document.getElementById('stats-button');
   if (statsButton) {
     statsButton.title = 'Statistik anzeigen';
     statsButton.setAttribute('aria-label', 'Statistik anzeigen');
   }
   
-  // Translate the content when it's being generated
+  
   const translateStatsContent = function() {
-    // Find all text nodes in the stats content
+    
     const statsContent = document.getElementById('stats-content');
     if (!statsContent) return;
     
-    // Replace specific English terms with German equivalents
+    
     const textReplacements = {
       'Session Statistics': 'Statistik',
       'sessions': 'Einheiten',
@@ -588,7 +1280,7 @@ function updateStatsPopupText() {
       'Count': 'Anzahl'
     };
     
-    // Replace all occurrences in the HTML content
+    
     let htmlContent = statsContent.innerHTML;
     for (const [english, german] of Object.entries(textReplacements)) {
       const regex = new RegExp(english, 'g');
@@ -597,25 +1289,26 @@ function updateStatsPopupText() {
     statsContent.innerHTML = htmlContent;
   };
   
-  // Call this function whenever the stats content is updated
+  
   const originalCreateStats = window.createStats || function(){};
   window.createStats = function() {
     originalCreateStats.apply(this, arguments);
     translateStatsContent();
   };
   
-  // Also translate immediately if content exists
+  
   translateStatsContent();
 }
 
-// Call this function when the page loads
+
 document.addEventListener('DOMContentLoaded', function() {
   updateStatsPopupText();
 });
 
 window.onload = function() {
-  loadAllWeekSessions();  // For the timetable visualization with all week sessions
-  loadExcelFilesTable();  // For the table display
+  loadAllWeekSessions();  
+  loadExcelFilesTable();  
   initDarkMode();
   initStatsButton();
+  initCalendarButton();
 };
