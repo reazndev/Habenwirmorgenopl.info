@@ -1,0 +1,20 @@
+{
+  "name": "habenwirmorgenopl-info",
+  "version": "1.0.0",
+  "description": "I2A BBB Planner",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
