@@ -6,7 +6,8 @@ function isDateTodayOrLaterTable(date) {
 
 async function loadSessionsFromJSONTable() {
   try {
-    const response = await fetch('./sessions.json');
+    const config = getActiveClassConfig();
+    const response = await fetch(`./${config.sessionsFile}`);
     const data = await response.json();
     return data.sessions.map(session => ({
       ...session,
