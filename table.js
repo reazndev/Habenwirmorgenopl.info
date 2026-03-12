@@ -54,9 +54,9 @@ async function loadExcelFilesTable() {
       }
 
       if (nextSession.details === "ILA") {
-        nextSessionElement.textContent = `${timeText} im Lernatelier als ${nextSession.sessionType}`;
+        nextSessionElement.textContent = `${timeText} im Lernatelier als ${getSessionTypeLabel(nextSession.sessionType)}`;
       } else {
-        nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
+        nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${getSessionTypeLabel(nextSession.sessionType)}`;
       }
 
       if (nextSession.sessionType === "PPL") {
@@ -76,7 +76,7 @@ async function loadExcelFilesTable() {
       const cellDetails = document.createElement("td");
 
       cellDate.textContent = session.date.toLocaleDateString();
-      cellSessionType.textContent = session.sessionType;
+      cellSessionType.textContent = getSessionTypeLabel(session.sessionType);
       cellDetails.textContent = session.details;
 
       if (session.note) {

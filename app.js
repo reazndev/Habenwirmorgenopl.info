@@ -1,4 +1,15 @@
 
+// Session type display labels
+const SESSION_TYPE_LABELS = {
+  'OPL': 'OPL Online with Teams call',
+  'DSL': 'DSL Online without any Teams call',
+  'PPL': 'PPL On premise'
+};
+
+function getSessionTypeLabel(type) {
+  return SESSION_TYPE_LABELS[type] || type;
+}
+
 function createCustomNotification(message, type = 'info', showButtons = false) {
   
   const existingNotification = document.getElementById('custom-notification');
@@ -319,7 +330,7 @@ function updateTimetableVisualization(sessions) {
             ${session.details}
           </div>
           <div style="font-size: clamp(0.8rem, 1.5vw, 1.2rem);">${date}</div>
-          <div style="font-size: clamp(0.8rem, 1.5vw, 1.2rem);">${session.sessionType}${session.isExam ? ' (Prüfung)' : ''}</div>
+          <div style="font-size: clamp(0.65rem, 1.2vw, 1rem);">${getSessionTypeLabel(session.sessionType)}${session.isExam ? ' (Prüfung)' : ''}</div>
         </div>
       `;
       
@@ -486,11 +497,11 @@ function initStatsButton() {
             <div>${stats.total}</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; border-radius: 5px;">
-            <div>OPL/DSL Einheiten:</div>
+            <div>OPL/DSL Online Einheiten:</div>
             <div>${stats.byType.OPL + stats.byType.DSL} (${oplDslPercent}%)</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;">
-            <div>PPL Einheiten:</div>
+            <div>PPL On premise Einheiten:</div>
             <div>${stats.byType.PPL} (${pplPercent}%)</div>
           </div>
           
@@ -498,7 +509,7 @@ function initStatsButton() {
             <div style="position: absolute; top: 0; left: 0; width: ${oplDslPercent}%; height: 100%; background-color: #1a4d1a;"></div>
             <div style="position: absolute; top: 0; left: ${oplDslPercent}%; width: ${pplPercent}%; height: 100%; background-color: #666666;"></div>
             <div style="position: absolute; top: 0; width: 100%; text-align: center; color: white; font-size: 0.8em; line-height: 20px; font-weight: bold; text-shadow: 0 0 2px rgba(0,0,0,0.7);">
-              ${oplDslPercent}% OPL/DSL - ${pplPercent}% PPL
+              ${oplDslPercent}% OPL/DSL Online - ${pplPercent}% PPL On premise
             </div>
           </div>
         </div>
@@ -523,8 +534,8 @@ function initStatsButton() {
               <div>${data.total} Einheiten</div>
             </div>
             <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
-              <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
-              <div>PPL: ${data.PPL} (${teacherPplPercent}%)</div>
+              <div>OPL/DSL Online: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
+              <div>PPL On premise: ${data.PPL} (${teacherPplPercent}%)</div>
             </div>
           `;
           rowIndex++;
@@ -551,8 +562,8 @@ function initStatsButton() {
             <div>${data.total} Einheiten</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
-            <div>OPL/DSL: ${data.OPL + data.DSL} (${moduleOplDslPercent}%)</div>
-            <div>PPL: ${data.PPL} (${modulePplPercent}%)</div>
+            <div>OPL/DSL Online: ${data.OPL + data.DSL} (${moduleOplDslPercent}%)</div>
+            <div>PPL On premise: ${data.PPL} (${modulePplPercent}%)</div>
           </div>
         `;
         rowIndex++;
@@ -1083,9 +1094,9 @@ function loadAdminSessions() {
           <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Typ:</label>
           <select onchange="updateSession(${sessionIndex}, 'sessionType', this.value)" 
                   style="width: 100%; padding: 8px; border: 1px solid ${borderColor}; border-radius: 6px; background-color: ${inputBg}; color: ${inputColor}; font-size: 14px;">
-            <option value="OPL" ${session.sessionType === 'OPL' ? 'selected' : ''}>OPL</option>
-            <option value="DSL" ${session.sessionType === 'DSL' ? 'selected' : ''}>DSL</option>
-            <option value="PPL" ${session.sessionType === 'PPL' ? 'selected' : ''}>PPL</option>
+            <option value="OPL" ${session.sessionType === 'OPL' ? 'selected' : ''}>OPL Online with Teams call</option>
+            <option value="DSL" ${session.sessionType === 'DSL' ? 'selected' : ''}>DSL Online without any Teams call</option>
+            <option value="PPL" ${session.sessionType === 'PPL' ? 'selected' : ''}>PPL On premise</option>
           </select>
         </div>
         <div>

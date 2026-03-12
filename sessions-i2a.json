@@ -1,30 +1,21 @@
 {
   "sessions": [
     {
-      "id": "1773345233112",
-      "date": "2026-03-13",
+      "id": "1773346736899",
+      "date": "2026-03-12",
       "sessionType": "OPL",
-      "details": "ILA",
-      "note": "",
-      "slot": "friday-morning",
-      "isExam": false
-    },
-    {
-      "id": "1773345311883",
-      "date": "2026-03-16",
-      "sessionType": "OPL",
-      "details": "114",
+      "details": "426",
       "note": "",
       "slot": "monday-afternoon",
       "isExam": false
     },
     {
-      "id": "1773345477409",
-      "date": "2026-03-19",
+      "id": "1773346760608",
+      "date": "2026-03-13",
       "sessionType": "DSL",
-      "details": "Neues Modul",
+      "details": "LA",
       "note": "",
-      "slot": "thursday-morning",
+      "slot": "friday-morning",
       "isExam": false
     }
   ]
