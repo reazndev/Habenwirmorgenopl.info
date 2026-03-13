@@ -1,13 +1,32 @@
 
 // Session type display labels
 const SESSION_TYPE_LABELS = {
-  'OPL': 'OPL Online with Teams call',
-  'DSL': 'DSL Online without any Teams call',
-  'PPL': 'PPL On premise'
+  'OPL': {
+    short: 'OPL',
+    long: 'OPL Online mit Teams-Anruf'
+  },
+  'DSL': {
+    short: 'DSL',
+    long: 'DSL Online ohne Teams-Anruf'
+  },
+  'PPL': {
+    short: 'PPL',
+    long: 'PPL Präsenz vor Ort'
+  }
 };
 
 function getSessionTypeLabel(type) {
-  return SESSION_TYPE_LABELS[type] || type;
+  return SESSION_TYPE_LABELS[type]?.long || type;
+}
+
+function getSessionTypeShort(type) {
+  return SESSION_TYPE_LABELS[type]?.short || type;
+}
+
+function getSessionTypeWithTooltip(type) {
+  const label = SESSION_TYPE_LABELS[type];
+  if (!label) return type;
+  return `<span class="session-type-tooltip" data-tooltip="${label.long}">${label.short}</span>`;
 }
 
 function createCustomNotification(message, type = 'info', showButtons = false) {
@@ -330,7 +349,7 @@ function updateTimetableVisualization(sessions) {
             ${session.details}
           </div>
           <div style="font-size: clamp(0.8rem, 1.5vw, 1.2rem);">${date}</div>
-          <div style="font-size: clamp(0.65rem, 1.2vw, 1rem);">${getSessionTypeLabel(session.sessionType)}${session.isExam ? ' (Prüfung)' : ''}</div>
+          <div style="font-size: clamp(0.65rem, 1.2vw, 1rem);">${getSessionTypeWithTooltip(session.sessionType)}${session.isExam ? ' (Prüfung)' : ''}</div>
         </div>
       `;
       
@@ -1092,11 +1111,11 @@ function loadAdminSessions() {
         </div>
         <div>
           <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Typ:</label>
-          <select onchange="updateSession(${sessionIndex}, 'sessionType', this.value)" 
+          <select onchange="updateSession(${sessionIndex}, 'sessionType', this.value)"
                   style="width: 100%; padding: 8px; border: 1px solid ${borderColor}; border-radius: 6px; background-color: ${inputBg}; color: ${inputColor}; font-size: 14px;">
-            <option value="OPL" ${session.sessionType === 'OPL' ? 'selected' : ''}>OPL Online with Teams call</option>
-            <option value="DSL" ${session.sessionType === 'DSL' ? 'selected' : ''}>DSL Online without any Teams call</option>
-            <option value="PPL" ${session.sessionType === 'PPL' ? 'selected' : ''}>PPL On premise</option>
+            <option value="OPL" ${session.sessionType === 'OPL' ? 'selected' : ''}>OPL</option>
+            <option value="DSL" ${session.sessionType === 'DSL' ? 'selected' : ''}>DSL</option>
+            <option value="PPL" ${session.sessionType === 'PPL' ? 'selected' : ''}>PPL</option>
           </select>
         </div>
         <div>

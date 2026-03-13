@@ -86,7 +86,7 @@ body {
     padding: 10px;
     margin-bottom: 20px;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 
@@ -114,7 +114,7 @@ body {
     padding: 10px;
     margin-bottom: 20px;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 
@@ -1033,4 +1033,61 @@ body.no-scroll {
   width: 15px;
   height: 15px;
   border-radius: 3px;
+}
+
+/* Tooltip styles for session types */
+.session-type-tooltip {
+  position: relative;
+  cursor: default;
+  border-bottom: 1px dotted currentColor;
+}
+
+.session-type-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.session-type-tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.session-type-tooltip:hover::after,
+.session-type-tooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dark-mode .session-type-tooltip::after {
+  background-color: #555;
+  color: #fff;
+}
+
+.dark-mode .session-type-tooltip::before {
+  border-color: #555 transparent transparent transparent;
 }
