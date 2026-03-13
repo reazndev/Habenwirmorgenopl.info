@@ -1,0 +1,22 @@
+{
+  "sessions": [
+    {
+      "id": "1773346736899",
+      "date": "2026-03-12",
+      "sessionType": "OPL",
+      "details": "426",
+      "note": "",
+      "slot": "monday-afternoon",
+      "isExam": false
+    },
+    {
+      "id": "1773346760608",
+      "date": "2026-03-13",
+      "sessionType": "DSL",
+      "details": "LA",
+      "note": "",
+      "slot": "friday-morning",
+      "isExam": false
+    }
+  ]
+}

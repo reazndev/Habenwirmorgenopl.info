@@ -6,7 +6,8 @@ function isDateTodayOrLaterTable(date) {
 
 async function loadSessionsFromJSONTable() {
   try {
-    const response = await fetch('./sessions.json');
+    const config = getActiveClassConfig();
+    const response = await fetch(`./${config.sessionsFile}`);
     const data = await response.json();
     return data.sessions.map(session => ({
       ...session,
@@ -53,9 +54,9 @@ async function loadExcelFilesTable() {
       }
 
       if (nextSession.details === "ILA") {
-        nextSessionElement.textContent = `${timeText} im Lernatelier als ${nextSession.sessionType}`;
+        nextSessionElement.innerHTML = `${timeText} im Lernatelier als ${getSessionTypeWithTooltip(nextSession.sessionType)}`;
       } else {
-        nextSessionElement.textContent = `${timeText} im Modul ${nextSession.details} als ${nextSession.sessionType}`;
+        nextSessionElement.innerHTML = `${timeText} im Modul ${nextSession.details} als ${getSessionTypeWithTooltip(nextSession.sessionType)}`;
       }
 
       if (nextSession.sessionType === "PPL") {
@@ -75,7 +76,7 @@ async function loadExcelFilesTable() {
       const cellDetails = document.createElement("td");
 
       cellDate.textContent = session.date.toLocaleDateString();
-      cellSessionType.textContent = session.sessionType;
+      cellSessionType.innerHTML = getSessionTypeWithTooltip(session.sessionType);
       cellDetails.textContent = session.details;
 
       if (session.note) {

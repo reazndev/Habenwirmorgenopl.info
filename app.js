@@ -1,4 +1,34 @@
 
+// Session type display labels
+const SESSION_TYPE_LABELS = {
+  'OPL': {
+    short: 'OPL',
+    long: 'OPL Online mit Teams-Anruf'
+  },
+  'DSL': {
+    short: 'DSL',
+    long: 'DSL Online ohne Teams-Anruf'
+  },
+  'PPL': {
+    short: 'PPL',
+    long: 'PPL Präsenz vor Ort'
+  }
+};
+
+function getSessionTypeLabel(type) {
+  return SESSION_TYPE_LABELS[type]?.long || type;
+}
+
+function getSessionTypeShort(type) {
+  return SESSION_TYPE_LABELS[type]?.short || type;
+}
+
+function getSessionTypeWithTooltip(type) {
+  const label = SESSION_TYPE_LABELS[type];
+  if (!label) return type;
+  return `<span class="session-type-tooltip" data-tooltip="${label.long}">${label.short}</span>`;
+}
+
 function createCustomNotification(message, type = 'info', showButtons = false) {
   
   const existingNotification = document.getElementById('custom-notification');
@@ -184,7 +214,8 @@ let currentWeekOffset = 0;
 
 async function loadSessionsFromJSON() {
   try {
-    const response = await fetch('./sessions.json');
+    const config = getActiveClassConfig();
+    const response = await fetch(`./${config.sessionsFile}`);
     const data = await response.json();
     sessions = data.sessions.map(session => ({
       ...session,
@@ -199,7 +230,8 @@ async function loadSessionsFromJSON() {
 
 async function saveSessionsToJSON(sessionsData) {
   try {
-    const response = await fetch('/api/sessions', {
+    const classId = getActiveClass();
+    const response = await fetch(`/api/sessions/${classId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -219,20 +251,79 @@ async function saveSessionsToJSON(sessionsData) {
   }
 }
 
-function updateTimetableVisualization(sessions) {
+function renderTimetableGrid() {
+  const container = document.getElementById('timetable-container');
+  if (!container) return;
   
-  const sessionsBySlot = {
-    'monday-morning': null,
-    'tuesday-afternoon': null,
-    'friday-afternoon': null
-  };
+  const config = getActiveClassConfig();
+  const days = [
+    { day: 1, label: 'Montag', short: 'MO' },
+    { day: 2, label: 'Dienstag', short: 'DI' },
+    { day: 3, label: 'Mittwoch', short: 'MI' },
+    { day: 4, label: 'Donnerstag', short: 'DO' },
+    { day: 5, label: 'Freitag', short: 'FR' }
+  ];
+  
+  container.innerHTML = '';
+  
+  // Day labels (row 1)
+  days.forEach((d, i) => {
+    const col = (i * 2) + 1;
+    const label = document.createElement('div');
+    label.className = 'day-label';
+    label.style.gridColumn = `${col} / ${col + 2}`;
+    label.style.gridRow = '1';
+    label.setAttribute('data-short-name', d.short);
+    label.innerHTML = `<span>${d.label}</span>`;
+    container.appendChild(label);
+  });
+  
+  // Create all slots (morning + afternoon for each day)
+  days.forEach((d, i) => {
+    const col = (i * 2) + 1;
+    
+    // Check if this day+period is an active slot for the current class
+    const morningSlot = config.slots.find(s => s.day === d.day && s.period === 'morning');
+    const afternoonSlot = config.slots.find(s => s.day === d.day && s.period === 'afternoon');
+    
+    // Morning slot (rows 2-6)
+    const morningDiv = document.createElement('div');
+    if (morningSlot) {
+      morningDiv.className = `session-slot slot-${morningSlot.id}`;
+    } else {
+      morningDiv.className = 'timetable-slot';
+    }
+    morningDiv.style.backgroundColor = '#cfcfcf';
+    morningDiv.style.gridColumn = `${col} / ${col + 2}`;
+    morningDiv.style.gridRow = '2 / 6';
+    container.appendChild(morningDiv);
+    
+    // Afternoon slot (rows 6-10)
+    const afternoonDiv = document.createElement('div');
+    if (afternoonSlot) {
+      afternoonDiv.className = `session-slot slot-${afternoonSlot.id}`;
+    } else {
+      afternoonDiv.className = 'timetable-slot';
+    }
+    afternoonDiv.style.backgroundColor = '#cfcfcf';
+    afternoonDiv.style.gridColumn = `${col} / ${col + 2}`;
+    afternoonDiv.style.gridRow = '6 / 10';
+    container.appendChild(afternoonDiv);
+  });
+}
+
+function updateTimetableVisualization(sessions) {
+  const config = getActiveClassConfig();
+  
+  // Build a map of slot id -> session
+  const sessionsBySlot = {};
+  config.slots.forEach(s => { sessionsBySlot[s.id] = null; });
   
   sessions.forEach(session => {
     if (session.slot && sessionsBySlot.hasOwnProperty(session.slot)) {
       sessionsBySlot[session.slot] = session;
     }
   });
-  
   
   const updateSlot = (slotSelector, session) => {
     const slot = document.querySelector(slotSelector);
@@ -258,7 +349,7 @@ function updateTimetableVisualization(sessions) {
             ${session.details}
           </div>
           <div style="font-size: clamp(0.8rem, 1.5vw, 1.2rem);">${date}</div>
-          <div style="font-size: clamp(0.8rem, 1.5vw, 1.2rem);">${session.sessionType}${session.isExam ? ' (Prüfung)' : ''}</div>
+          <div style="font-size: clamp(0.65rem, 1.2vw, 1rem);">${getSessionTypeWithTooltip(session.sessionType)}${session.isExam ? ' (Prüfung)' : ''}</div>
         </div>
       `;
       
@@ -272,19 +363,21 @@ function updateTimetableVisualization(sessions) {
       slot.style.backgroundColor = '#cfcfcf';
       slot.style.cursor = isAdminMode ? 'pointer' : 'default';
       if (isAdminMode) {
-        slot.onclick = () => editSession(slotSelector.replace('.', '').replace('-slot', ''));
+        const slotId = slotSelector.replace('.slot-', '');
+        slot.onclick = () => editSession(slotId);
       }
     }
   };
   
-  
-  updateSlot('.mon-slot', sessionsBySlot['monday-morning']);
-  updateSlot('.tue-slot', sessionsBySlot['tuesday-afternoon']);
-  updateSlot('.fri-slot', sessionsBySlot['friday-afternoon']);
+  // Update all active slots dynamically
+  config.slots.forEach(s => {
+    updateSlot(`.slot-${s.id}`, sessionsBySlot[s.id]);
+  });
 }
 
 
 async function loadAllWeekSessions() {
+  renderTimetableGrid(); // Re-render grid for active class
   await loadSessionsFromJSON();
   
   
@@ -376,11 +469,7 @@ function initStatsButton() {
           PPL: allSessions.filter(s => s.sessionType === 'PPL').length
         },
         byModule: {},
-        byTeacher: {
-          'Colic (Montag)': { total: 0, OPL: 0, DSL: 0, PPL: 0 },
-          'TBD (Dienstag)': { total: 0, OPL: 0, DSL: 0, PPL: 0 },
-          'Colic (Freitag)': { total: 0, OPL: 0, DSL: 0, PPL: 0 }
-        }
+        byTeacher: JSON.parse(JSON.stringify(getActiveClassConfig().teachers))
       };
       
       
@@ -401,12 +490,11 @@ function initStatsButton() {
         
         
         let teacherKey = '';
-        if (session.slot === 'monday-morning') {
-          teacherKey = 'Colic (Montag)';
-        } else if (session.slot === 'tuesday-afternoon') {
-          teacherKey = 'TBD (Dienstag)';
-        } else if (session.slot === 'friday-afternoon') {
-          teacherKey = 'Colic (Freitag)';
+        const config = getActiveClassConfig();
+        const teacherKeys = Object.keys(config.teachers);
+        const slotIndex = config.slots.findIndex(s => s.id === session.slot);
+        if (slotIndex >= 0 && slotIndex < teacherKeys.length) {
+          teacherKey = teacherKeys[slotIndex];
         }
         
         if (teacherKey && stats.byTeacher[teacherKey]) {
@@ -428,11 +516,11 @@ function initStatsButton() {
             <div>${stats.total}</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; border-radius: 5px;">
-            <div>OPL/DSL Einheiten:</div>
+            <div>OPL/DSL Online Einheiten:</div>
             <div>${stats.byType.OPL + stats.byType.DSL} (${oplDslPercent}%)</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 5px;">
-            <div>PPL Einheiten:</div>
+            <div>PPL On premise Einheiten:</div>
             <div>${stats.byType.PPL} (${pplPercent}%)</div>
           </div>
           
@@ -440,7 +528,7 @@ function initStatsButton() {
             <div style="position: absolute; top: 0; left: 0; width: ${oplDslPercent}%; height: 100%; background-color: #1a4d1a;"></div>
             <div style="position: absolute; top: 0; left: ${oplDslPercent}%; width: ${pplPercent}%; height: 100%; background-color: #666666;"></div>
             <div style="position: absolute; top: 0; width: 100%; text-align: center; color: white; font-size: 0.8em; line-height: 20px; font-weight: bold; text-shadow: 0 0 2px rgba(0,0,0,0.7);">
-              ${oplDslPercent}% OPL/DSL - ${pplPercent}% PPL
+              ${oplDslPercent}% OPL/DSL Online - ${pplPercent}% PPL On premise
             </div>
           </div>
         </div>
@@ -465,8 +553,8 @@ function initStatsButton() {
               <div>${data.total} Einheiten</div>
             </div>
             <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
-              <div>OPL/DSL: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
-              <div>PPL: ${data.PPL} (${teacherPplPercent}%)</div>
+              <div>OPL/DSL Online: ${data.OPL + data.DSL} (${teacherOplDslPercent}%)</div>
+              <div>PPL On premise: ${data.PPL} (${teacherPplPercent}%)</div>
             </div>
           `;
           rowIndex++;
@@ -493,8 +581,8 @@ function initStatsButton() {
             <div>${data.total} Einheiten</div>
           </div>
           <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 8px; background-color: ${rowIndex % 2 === 0 ? 'rgba(0,0,0,0.05)' : 'transparent'}; border-radius: 5px;">
-            <div>OPL/DSL: ${data.OPL + data.DSL} (${moduleOplDslPercent}%)</div>
-            <div>PPL: ${data.PPL} (${modulePplPercent}%)</div>
+            <div>OPL/DSL Online: ${data.OPL + data.DSL} (${moduleOplDslPercent}%)</div>
+            <div>PPL On premise: ${data.PPL} (${modulePplPercent}%)</div>
           </div>
         `;
         rowIndex++;
@@ -1023,7 +1111,7 @@ function loadAdminSessions() {
         </div>
         <div>
           <label style="display: block; margin-bottom: 5px; font-weight: 500; color: ${inputColor}; font-size: 12px;">Typ:</label>
-          <select onchange="updateSession(${sessionIndex}, 'sessionType', this.value)" 
+          <select onchange="updateSession(${sessionIndex}, 'sessionType', this.value)"
                   style="width: 100%; padding: 8px; border: 1px solid ${borderColor}; border-radius: 6px; background-color: ${inputBg}; color: ${inputColor}; font-size: 14px;">
             <option value="OPL" ${session.sessionType === 'OPL' ? 'selected' : ''}>OPL</option>
             <option value="DSL" ${session.sessionType === 'DSL' ? 'selected' : ''}>DSL</option>
@@ -1093,19 +1181,8 @@ function updateSessionWithSlot(index, field, value) {
     const date = new Date(value);
     sessions[index][field] = date;
     
-    
-    const dayOfWeek = date.getDay(); 
-    
-    if (dayOfWeek === 1) { 
-      sessions[index].slot = 'monday-morning';
-    } else if (dayOfWeek === 2) { 
-      sessions[index].slot = 'tuesday-afternoon';
-    } else if (dayOfWeek === 5) { 
-      sessions[index].slot = 'friday-afternoon';
-    } else {
-      
-      sessions[index].slot = 'monday-morning';
-    }
+    // Auto-assign slot based on active class config
+    sessions[index].slot = autoAssignSlot(date);
     
     console.log(`Updated session ${index}: date = ${value}, auto-assigned slot = ${sessions[index].slot}`);
   } else {
@@ -1175,13 +1252,14 @@ async function deleteSession(index) {
 }
 
 function addNewSession() {
+  const config = getActiveClassConfig();
   const newSession = {
     id: Date.now().toString(),
     date: new Date(),
     sessionType: 'OPL',
     details: 'Neues Modul',
     note: '',
-    slot: 'monday-morning',
+    slot: config.slots[0].id,
     isExam: false
   };
   
@@ -1323,9 +1401,57 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.onload = function() {
+  initClassSwitcher();
+  renderTimetableGrid();
   loadAllWeekSessions();  
   loadExcelFilesTable();  
   initDarkMode();
   initStatsButton();
   initCalendarButton();
 };
+
+function initClassSwitcher() {
+  const switcher = document.getElementById('class-switcher');
+  if (!switcher) return;
+  
+  const activeClass = getActiveClass();
+  
+  let html = '';
+  Object.keys(CLASS_CONFIG).forEach(classId => {
+    const config = CLASS_CONFIG[classId];
+    const isActive = classId === activeClass;
+    html += `<button class="class-tab ${isActive ? 'active' : ''}" data-class="${classId}">${config.label}</button>`;
+  });
+  
+  switcher.innerHTML = html;
+  
+  // Add click handlers
+  switcher.querySelectorAll('.class-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const classId = this.getAttribute('data-class');
+      if (classId === getActiveClass()) return;
+      
+      setActiveClass(classId);
+      
+      // Update active tab styling
+      switcher.querySelectorAll('.class-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update page title
+      document.title = `${CLASS_CONFIG[classId].label} BBB Planner`;
+      
+      // Reload everything for new class
+      renderTimetableGrid();
+      loadAllWeekSessions();
+      loadExcelFilesTable();
+      
+      // Close admin panel if open (data changed)
+      if (isAdminMode) {
+        closeAdminPanel();
+      }
+    });
+  });
+  
+  // Set initial title
+  document.title = `${CLASS_CONFIG[activeClass].label} BBB Planner`;
+}

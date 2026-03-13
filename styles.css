@@ -16,6 +16,66 @@ body {
     background-color: #e5e5e5;
 }
 
+/* Class Switcher */
+#class-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.class-tab {
+    font-family: 'nMedium', sans-serif;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    background-color: rgb(247, 244, 244);
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.class-tab:hover {
+    background-color: #e0e0e0;
+}
+
+.class-tab.active {
+    background-color: #1A4D1A;
+    color: white;
+    border-color: #1A4D1A;
+}
+
+.dark-mode .class-tab {
+    background-color: #2d2d2d;
+    color: #999;
+    border-color: #444;
+}
+
+.dark-mode .class-tab:hover {
+    background-color: #3d3d3d;
+}
+
+.dark-mode .class-tab.active {
+    background-color: #1A4D1A;
+    color: white;
+    border-color: #1A4D1A;
+}
+
+/* Session slots (dynamic, class-aware) */
+.session-slot {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
 
 #next-session {
     position: relative;
@@ -26,7 +86,7 @@ body {
     padding: 10px;
     margin-bottom: 20px;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 
@@ -54,7 +114,7 @@ body {
     padding: 10px;
     margin-bottom: 20px;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 
@@ -260,7 +320,7 @@ tr:last-child td:last-child {
     padding: 10px;
   }
   
-  .mon-slot, .tue-slot, .thr-slot, .fri-slot, .timetable-slot {
+  .mon-slot, .tue-slot, .thr-slot, .fri-slot, .timetable-slot, .session-slot {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -290,11 +350,11 @@ tr:last-child td:last-child {
   }
   
  
-  .mon-slot div, .tue-slot div, .thr-slot div, .fri-slot div, .timetable-slot div {
+  .mon-slot div, .tue-slot div, .thr-slot div, .fri-slot div, .timetable-slot div, .session-slot div {
     padding: 3px !important;
   }
  
-  .mon-slot div div, .tue-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
+  .mon-slot div div, .tue-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div, .session-slot div div {
     font-size: 1.0em !important;
     line-height: 1.3 !important;
   }
@@ -316,7 +376,7 @@ tr:last-child td:last-child {
   }
   
  
-  .mon-slot div div, .tue-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div {
+  .mon-slot div div, .tue-slot div div, .thr-slot div div, .fri-slot div div, .timetable-slot div div, .session-slot div div {
     font-size: 0.9em !important;
   }
 }
@@ -449,6 +509,11 @@ tr:last-child td:last-child {
   color: #e0e0e0;
 }
 
+.dark-mode .session-slot {
+  background-color: #333 !important;
+  color: #e0e0e0;
+}
+
 .dark-mode .mon-slot,
 .dark-mode .tue-slot,
 .dark-mode .thr-slot,
@@ -462,7 +527,8 @@ tr:last-child td:last-child {
 .dark-mode .tue-slot[style*="background-color: rgb(132, 204, 132)"],
 .dark-mode .thr-slot[style*="background-color: rgb(132, 204, 132)"],
 .dark-mode .fri-slot[style*="background-color: rgb(132, 204, 132)"],
-.dark-mode .timetable-slot[style*="background-color: rgb(132, 204, 132)"] {
+.dark-mode .timetable-slot[style*="background-color: rgb(132, 204, 132)"],
+.dark-mode .session-slot[style*="background-color: rgb(132, 204, 132)"] {
   background-color: #1a4d1a !important;
 }
 
@@ -471,7 +537,8 @@ tr:last-child td:last-child {
 .tue-slot[style*="background-color: rgb(255, 107, 107)"],
 .thr-slot[style*="background-color: rgb(255, 107, 107)"],
 .fri-slot[style*="background-color: rgb(255, 107, 107)"],
-.timetable-slot[style*="background-color: rgb(255, 107, 107)"] {
+.timetable-slot[style*="background-color: rgb(255, 107, 107)"],
+.session-slot[style*="background-color: rgb(255, 107, 107)"] {
   background-color: #ff6b6b !important;
   color: white !important;
 }
@@ -480,7 +547,8 @@ tr:last-child td:last-child {
 .dark-mode .tue-slot[style*="background-color: rgb(255, 107, 107)"],
 .dark-mode .thr-slot[style*="background-color: rgb(255, 107, 107)"],
 .dark-mode .fri-slot[style*="background-color: rgb(255, 107, 107)"],
-.dark-mode .timetable-slot[style*="background-color: rgb(255, 107, 107)"] {
+.dark-mode .timetable-slot[style*="background-color: rgb(255, 107, 107)"],
+.dark-mode .session-slot[style*="background-color: rgb(255, 107, 107)"] {
   background-color: #c0392b !important;
   color: white !important;
 }
@@ -490,7 +558,8 @@ tr:last-child td:last-child {
 .dark-mode .tue-slot[style*="background-color: #ff6b6b"],
 .dark-mode .thr-slot[style*="background-color: #ff6b6b"],
 .dark-mode .fri-slot[style*="background-color: #ff6b6b"],
-.dark-mode .timetable-slot[style*="background-color: #ff6b6b"] {
+.dark-mode .timetable-slot[style*="background-color: #ff6b6b"],
+.dark-mode .session-slot[style*="background-color: #ff6b6b"] {
   background-color: #c0392b !important;
   color: white !important;
 }
@@ -500,7 +569,8 @@ tr:last-child td:last-child {
 .dark-mode .tue-slot[style*="background-color: white"],
 .dark-mode .thr-slot[style*="background-color: white"],
 .dark-mode .fri-slot[style*="background-color: white"],
-.dark-mode .timetable-slot[style*="background-color: white"] {
+.dark-mode .timetable-slot[style*="background-color: white"],
+.dark-mode .session-slot[style*="background-color: white"] {
   background-color: #666666 !important;
   color: white !important;
 }
@@ -548,7 +618,8 @@ tr:last-child td:last-child {
 .tue-slot[style*="background-color: white"],
 .thr-slot[style*="background-color: white"],
 .fri-slot[style*="background-color: white"],
-.timetable-slot[style*="background-color: white"] {
+.timetable-slot[style*="background-color: white"],
+.session-slot[style*="background-color: white"] {
   color: white !important;
 }
 
@@ -962,4 +1033,61 @@ body.no-scroll {
   width: 15px;
   height: 15px;
   border-radius: 3px;
+}
+
+/* Tooltip styles for session types */
+.session-type-tooltip {
+  position: relative;
+  cursor: default;
+  border-bottom: 1px dotted currentColor;
+}
+
+.session-type-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.session-type-tooltip::before {
+  content: "";
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.session-type-tooltip:hover::after,
+.session-type-tooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dark-mode .session-type-tooltip::after {
+  background-color: #555;
+  color: #fff;
+}
+
+.dark-mode .session-type-tooltip::before {
+  border-color: #555 transparent transparent transparent;
 }
